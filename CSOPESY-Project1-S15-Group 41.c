@@ -25,6 +25,7 @@ terminates. If the text file does not exist, the program outputs “<FILENAME.TX
 found.” error message and then terminates
 */
 #include <stdio.h>
+#include <stdlib.h> // For exit() function
 void PreemptSJF(){
       int arrival_time[10], burst_time[10], temp[10];
       int i, smallest, count = 0, time, limit;
@@ -69,14 +70,55 @@ void PreemptSJF(){
 int main() 
 {
 
+
+/*
+#include <stdio.h>
+#include <stdlib.h> // For exit() function
+int main() {
+    char c[1000];
+    FILE *fptr;
+    if ((fptr = fopen("program.txt", "r")) == NULL) {
+        printf("Error! File cannot be opened.");
+        // Program exits if the file pointer returns NULL.
+        exit(1);
+    }
+
+    // reads text until newline is encountered
+    fscanf(fptr, "%[^\n]", c);
+    printf("Data from the file:\n%s", c);
+    fclose(fptr);
+
+    return 0;
+}
+*/
+      FILE *fptr;
+      int x,y,z;
+      char filename[50];
       //enter file name as input
       //checks if file exists reads data from file, else output error txt
 
-      int x;
-      if(x==2)
-      {
-            PreemptSJF();
+      printf("\nEnter the filename of the input file (ex:input.txt):\t");
+      scanf("%s", &filename);
+      fptr = fopen(filename, "r"); 
+      if (fptr == NULL) {
+        printf("%s not found.",filename);
+        // Program exits if the file pointer returns NULL.
+        exit(1);
       }
+      else{
+            printf("%s found!",filename);
+            
+            while (fscanf(fptr, "%d %d %d\n", &x, &y, &z) == 1) {
+                  printf("%d %d %d\n", x,y,z);
+            }
+            
+            if(x==2)
+            {
+              //PreemptSJF();
+            }
+            fclose(fptr);
+      }
+      
       return 0;
       /*
       Sample output:
