@@ -25,8 +25,7 @@ terminates. If the text file does not exist, the program outputs “<FILENAME.TX
 found.” error message and then terminates
 */
 #include <stdio.h>
-int main() 
-{
+void PreemptSJF(){
       int arrival_time[10], burst_time[10], temp[10];
       int i, smallest, count = 0, time, limit;
       double wait_time = 0, turnaround_time = 0, end;
@@ -66,9 +65,21 @@ int main()
       average_turnaround_time = turnaround_time / limit;
       printf("\n\nAverage Waiting Time:\t%lf\n", average_waiting_time);
       printf("Average Turnaround Time:\t%lf\n", average_turnaround_time);
+}
+int main() 
+{
+
+      //enter file name as input
+      //checks if file exists reads data from file, else output error txt
+
+      int x;
+      if(x==2)
+      {
+            PreemptSJF();
+      }
       return 0;
       /*
-      Sample putput:
+      Sample output:
             P[A]
             Start time: <S1> End time: <E1>
             Start time: <S2> End time: <E2>
