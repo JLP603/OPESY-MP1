@@ -25,7 +25,8 @@ terminates. If the text file does not exist, the program outputs “<FILENAME.TX
 found.” error message and then terminates
 */
 #include <stdio.h>
-#include <stdlib.h> // For exit() function
+#include <stdlib.h>
+#include<conio.h>   // For exit() function
 void PreemptSJF(FILE *fptr, int y){
       int limit=y;
       int process_id[100], arrival_time[100], burst_time[100], temp[100];
@@ -104,17 +105,11 @@ void roundRobin (FILE *fptr, int y, int quantum) {
         temp[i] = burst_time[i];
     }
       
-    /*
-    for(i=0;i<limit;i++)
-	{
-        printf("%d %d %d\n", process_id[i], arrival_time[i], burst_time[i]);
-        
-    }
-    */
+    
     for(sum=0, i = 0; limit!=0; )  
 	{  
-		if(temp[i] <= qt && temp[i] > 0) // define the conditions   
-		{  
+		if(temp[i] <= qt && temp[i] > 0) {
+		
 		    sum = sum + temp[i];  
 		    temp[i] = 0;  
 		    count=1;  
@@ -126,10 +121,10 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		}  
 		if(temp[i]==0 && count==1)  
 		{  
-		    limit--; //decrement the process no.  
+		    limit--; 
 		    //printf("\nProcess No[%d] \t\t %d\t\t\t\t %d\t\t\t %d", i+1, burst_time[i], sum-arrival_time[i], sum-arrival_time[i]-burst_time[i]);
 			printf("P[%d]\n", i+1);
-			printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ sum);
+			printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ (sum-arrival_time[i]));
 			printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
 			printf("Turn around time: %d\n", sum-arrival_time[i]);
 			printf("********************\n\n");
@@ -150,7 +145,7 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 			i=0;  
 		}  
 	}  
-	// represents the average waiting time and Turn Around time  
+	
 	avg_wt = wt * 1.0/y;  
 	avg_tat = tat * 1.0/y;  
 	printf("\n Average Turn Around Time: \t%f", avg_wt);  
@@ -160,6 +155,8 @@ void roundRobin (FILE *fptr, int y, int quantum) {
     
 	
 }
+
+
 int main() 
 {
       FILE *fptr;
