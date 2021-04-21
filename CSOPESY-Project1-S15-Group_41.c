@@ -148,11 +148,62 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 	
 	avg_wt = wt * 1.0/y;  
 	avg_tat = tat * 1.0/y;  
-	printf("\n Average Turn Around Time: \t%f", avg_wt);  
+	//printf("\n Average Turn Around Time: \t%f", avg_wt);  
 	printf("\n Average Waiting Time: \t%f", avg_tat);  
 	
 	getch();  
     
+	
+}
+
+void fcFs(FILE *fptr, int y) {
+	
+	int limit =y;
+	
+	int process_id[20], arrival_time[20], burst_time[20], temp[20],wt[20],tat[20],i,j;
+	float avwt=0,avtat=0;
+	
+	for(i=0;i<limit;i++)
+      {
+            fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
+            temp[i] = burst_time[i];
+      }
+	
+	wt[0]=0;    //waiting time for first process is 0
+ 
+    //calculating waiting time
+    for(i=1;i<y;i++)
+    {
+        wt[i]=0;
+        for(j=0;j<i;j++)
+            wt[i]+=burst_time[j];
+    }
+ 
+    
+ 
+    //calculating turnaround time
+    
+    int startTime = 0;
+    int endTime = burst_time[0];
+    for(i=0;i<y;i++)
+    {
+        
+		tat[i]=burst_time[i]+wt[i];
+        avwt+=wt[i];
+        avtat+=tat[i];
+        //printf("\nP[%d]\t\t%d\t\t%d\t\t%d",i+1,burst_time[i],wt[i],tat[i]);
+       	printf("P[%d]\n", i+1);
+		printf("Start time: %d   End time: %d\n", wt[i], wt[i]+burst_time[i]);
+		printf("Waiting time: %d\n", wt[i]);
+		printf("Turn around time: %d\n", tat[i]);
+		printf("********************\n\n");
+		
+    }
+ 
+    avwt/=i;
+    avtat/=i;
+    printf("\nAverage Waiting Time:%.2f",avwt);
+    //printf("\nAverage Turnaround Time:%d",avtat);
 	
 }
 
@@ -177,6 +228,9 @@ int main()
             fscanf(fptr, "%d %d %d\n", &x, &y, &z);
             //For testing
 		//printf("%d %d %d found!\n",x,y,z);
+			if (x == 0) {
+				fcFs(fptr, y);
+			}
             if(x==2)
             {
               PreemptSJF(fptr, y);
