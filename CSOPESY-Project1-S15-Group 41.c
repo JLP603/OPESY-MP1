@@ -26,7 +26,8 @@ found.” error message and then terminates
 */
 #include <stdio.h>
 #include <stdlib.h> // For exit() function
-void PreemptSJF(){
+void PreemptSJF(int y){
+      int limit=y;
       int arrival_time[10], burst_time[10], temp[10];
       int i, smallest, count = 0, time, limit;
       double wait_time = 0, turnaround_time = 0, end;
@@ -66,6 +67,26 @@ void PreemptSJF(){
       average_turnaround_time = turnaround_time / limit;
       printf("\n\nAverage Waiting Time:\t%lf\n", average_waiting_time);
       printf("Average Turnaround Time:\t%lf\n", average_turnaround_time);
+       /*
+      Sample output:
+            P[A]
+            Start time: <S1> End time: <E1>
+            Start time: <S2> End time: <E2>
+            …
+            Start time: <SN> End time: <EN>
+            Waiting time: <WT>
+            Turnaround time: <TT>
+            ************************************
+            P[A]
+            Start time: <S1> End time: <E1>
+            Start time: <S2> End time: <E2>
+            …
+            Start time: <SN> End time: <EN>
+            Waiting time: <WT>
+            Turnaround time: <TT>
+            ************************************
+            Average waiting time: <AWT>
+      */
 }
 int main() 
 {
@@ -107,14 +128,11 @@ int main() {
       }
       else{
             printf("%s found!",filename);
-            
-            while (fscanf(fptr, "%d %d %d\n", &x, &y, &z) == 1) {
-                  printf("%d %d %d\n", x,y,z);
-            }
+            fscanf(fptr, "%d %d %d\n", &x, &y, &z);
             
             if(x==2)
             {
-              //PreemptSJF();
+              PreemptSJF(y);
             }
             fclose(fptr);
       }
