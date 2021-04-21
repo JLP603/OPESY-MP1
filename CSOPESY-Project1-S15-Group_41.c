@@ -32,12 +32,20 @@ void PreemptSJF(FILE *fptr, int y){
       int i, smallest, count = 0, time;
       double wait_time = 0, turnaround_time = 0, end;
       float average_waiting_time, average_turnaround_time;
-      for(int i=0;i<limit;i++)
+      for(i=0;i<limit;i++)
       {
             fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
             temp[i] = burst_time[i];
       }
-      burst_time[99] = 9999;  
+      //for testing
+      /*
+      for(i=0;i<limit;i++)
+      {
+            printf("%d %d %d\n", process_id[i], arrival_time[i], burst_time[i]);
+        
+      }
+      */
+      burst_time[9] = 9999;  
       for(time = 0; count != limit; time++)
       {
             smallest = 9;
@@ -112,8 +120,8 @@ int main() {
       //enter file name as input
       //checks if file exists reads data from file, else output error txt
 
-      printf("\nEnter the filename of the input file (ex:input.txt):\t");
-      scanf("%s", &filename);
+      printf("\nEnter the filename of the input file (ex:input.txt):");
+      scanf("%s", filename);
       fptr = fopen(filename, "r"); 
       if (fptr == NULL) {
         printf("%s not found.",filename);
@@ -121,9 +129,11 @@ int main() {
         exit(1);
       }
       else{
-            printf("%s found!",filename);
+      		//For testing
+            //printf("%s found!\n",filename);
             fscanf(fptr, "%d %d %d\n", &x, &y, &z);
-            
+            //For testing
+			//printf("%d %d %d found!\n",x,y,z);
             if(x==2)
             {
               PreemptSJF(fptr, y);
@@ -132,24 +142,4 @@ int main() {
       }
       
       return 0;
-      /*
-      Sample output:
-            P[A]
-            Start time: <S1> End time: <E1>
-            Start time: <S2> End time: <E2>
-            …
-            Start time: <SN> End time: <EN>
-            Waiting time: <WT>
-            Turnaround time: <TT>
-            ************************************
-            P[A]
-            Start time: <S1> End time: <E1>
-            Start time: <S2> End time: <E2>
-            …
-            Start time: <SN> End time: <EN>
-            Waiting time: <WT>
-            Turnaround time: <TT>
-            ************************************
-            Average waiting time: <AWT>
-      */
 }
