@@ -93,10 +93,72 @@ void PreemptSJF(FILE *fptr, int y){
 
 void roundRobin (FILE *fptr, int y, int quantum) {
 	
-	int limit=y;
+	int i, sum=0,count=0, quant, wt=0, tat=0, limit=y;
+	int qt = quantum;
     int process_id[100], arrival_time[100], burst_time[100], temp[100];
+    float avg_wt, avg_tat; 
     
-	printf("you selected round robin\n");
+    for(i=0;i<limit;i++)
+    {
+        fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
+        temp[i] = burst_time[i];
+    }
+      
+    /*
+    for(i=0;i<limit;i++)
+	{
+        printf("%d %d %d\n", process_id[i], arrival_time[i], burst_time[i]);
+        
+    }
+    */
+    for(sum=0, i = 0; limit!=0; )  
+	{  
+		if(temp[i] <= qt && temp[i] > 0) // define the conditions   
+		{  
+		    sum = sum + temp[i];  
+		    temp[i] = 0;  
+		    count=1;  
+		    }     
+		else if(temp[i] > 0)  
+		{  
+		    temp[i] = temp[i] - qt;  
+		    sum = sum + qt;    
+		}  
+		if(temp[i]==0 && count==1)  
+		{  
+		    limit--; //decrement the process no.  
+		    //printf("\nProcess No[%d] \t\t %d\t\t\t\t %d\t\t\t %d", i+1, burst_time[i], sum-arrival_time[i], sum-arrival_time[i]-burst_time[i]);
+			printf("P[%d]\n", i+1);
+			printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ sum);
+			printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
+			printf("Turn around time: %d\n", sum-arrival_time[i]);
+			printf("********************\n\n");
+		    wt = wt+sum-arrival_time[i]-burst_time[i];  
+		    tat = tat+sum-arrival_time[i];  
+		    count =0;     
+		}  
+		if(i==y-1)  
+		{  
+		    i=0;  
+		}  
+		else if(arrival_time[i+1]<=sum)  
+		{  
+		    i++;  
+		}  
+		else  
+		{  
+			i=0;  
+		}  
+	}  
+	// represents the average waiting time and Turn Around time  
+	avg_wt = wt * 1.0/y;  
+	avg_tat = tat * 1.0/y;  
+	printf("\n Average Turn Around Time: \t%f", avg_wt);  
+	printf("\n Average Waiting Time: \t%f", avg_tat);  
+	
+	getch();  
+    
+	
 }
 int main() 
 {
@@ -122,7 +184,7 @@ int main()
             {
               PreemptSJF(fptr, y);
             } 
-			if (x == 4) {
+			if (x == 3) {
             	roundRobin(fptr, y, z);
 			}
             fclose(fptr);
