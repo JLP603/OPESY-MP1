@@ -90,6 +90,14 @@ void PreemptSJF(FILE *fptr, int y){
             Average waiting time: <AWT>
       */
 }
+
+void roundRobin (FILE *fptr, int y, int quantum) {
+	
+	int limit=y;
+    int process_id[100], arrival_time[100], burst_time[100], temp[100];
+    
+	printf("you selected round robin\n");
+}
 int main() 
 {
       FILE *fptr;
@@ -113,7 +121,10 @@ int main()
             if(x==2)
             {
               PreemptSJF(fptr, y);
-            }
+            } 
+			if (x == 4) {
+            	roundRobin(fptr, y, z);
+			}
             fclose(fptr);
       }
       
