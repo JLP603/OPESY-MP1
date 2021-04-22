@@ -37,7 +37,7 @@ void nonPreSJF (FILE *fptr, int y){
         fscanf(fptr, "%d %d %d", &process_id[i], &arrival_time[i], &burst_time[i]);
     }
     
-    //sorting of arrival times so that the process with an arrival timem of 0 comes first
+    //sorting of arrival times so that the process with an arrival time of 0 comes first
     
     
     for(i = 0; i < limit; i++){
@@ -62,9 +62,7 @@ void nonPreSJF (FILE *fptr, int y){
         arrival_time[pos] = temp;
     }
     
-    
-    
-	//sorting of burst times
+	//Now we will sort the burst times
     for(i = zero; i < limit; i++){
         pos = i;
         for(j = i+1; j < limit; j++){
