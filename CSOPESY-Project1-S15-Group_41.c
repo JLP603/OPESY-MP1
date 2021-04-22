@@ -28,10 +28,10 @@ found.” error message and then terminates
 #include <stdlib.h>
 #include<conio.h>   // For exit() function
 void PreemptSJF(FILE *fptr, int y){
-      int limit=y,waitingVar[y];
+      int limit=y;
       int process_id[100], arrival_time[100], burst_time[101], temp[100], ProcessCheck[y], prevProcess;
       int waitTimeOfTask[y],startTime[y][100],endTime[y][100],StartEndTimeLen[y],turnTimeOfTask=0;
-      int i,j, smallest, count = 0, time;
+      int i, smallest, count = 0, time;
       double wait_time = 0, end;
       float average_waiting_time;
       for(i=0;i<limit;i++)
@@ -40,7 +40,6 @@ void PreemptSJF(FILE *fptr, int y){
             temp[i] = burst_time[i];
             waitTimeOfTask[i] = 0;
             ProcessCheck[i] = 0;
-            waitingVar[i]=0;
             StartEndTimeLen[i]=0;
       }
       prevProcess=101;
@@ -54,17 +53,17 @@ void PreemptSJF(FILE *fptr, int y){
                  }
            }
            if(smallest!=prevProcess&&prevProcess!=101&&ProcessCheck[prevProcess]==1){
-                printf("\nprevProcess:%d startEndTimeLen %d\n",prevProcess, StartEndTimeLen[prevProcess]);
+                //printf("\nprevProcess:%d startEndTimeLen %d\n",prevProcess, StartEndTimeLen[prevProcess]);
                  endTime[prevProcess][StartEndTimeLen[prevProcess]]=time;
-                 printf("\nENDED! %d HERE!\n",endTime[prevProcess][StartEndTimeLen[prevProcess]]);
+                 //printf("\nENDED! %d HERE!\n",endTime[prevProcess][StartEndTimeLen[prevProcess]]);
                  StartEndTimeLen[prevProcess]++;
                  ProcessCheck[prevProcess]=0;
            }
            
            if(ProcessCheck[smallest]==0){
-                  printf("\nsmallest:%d startEndTimeLen %d\n",smallest, StartEndTimeLen[smallest]);
+                  //printf("\nsmallest:%d startEndTimeLen %d\n",smallest, StartEndTimeLen[smallest]);
                   startTime[smallest][StartEndTimeLen[smallest]]=time;
-                  printf("\nSTARTED! %d HERE!\n",startTime[smallest][StartEndTimeLen[smallest]]);
+                  //printf("\nSTARTED! %d HERE!\n",startTime[smallest][StartEndTimeLen[smallest]]);
                   ProcessCheck[smallest]=1;
            }
            
@@ -112,10 +111,10 @@ void PreemptSJF(FILE *fptr, int y){
 
 void roundRobin (FILE *fptr, int y, int quantum) {
 	
-    int i, sum=0,count=0, quant, wt=0, tat=0, limit=y;
+    int i, sum=0,count=0, wt=0, tat=0, limit=y;
     int qt = quantum;
     int process_id[100], arrival_time[100], burst_time[100], temp[100];
-    float avg_wt, avg_tat; 
+    float avg_wt; 
     
     for(i=0;i<limit;i++)
     {
@@ -145,7 +144,7 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		    printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ (sum-arrival_time[i]));
 		    printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
 		    printf("Turn around time: %d\n", sum-arrival_time[i]);
-		    printf("********************\n\n");
+		    printf("********************\n");
 		    wt = wt+sum-arrival_time[i]-burst_time[i];  
 		    tat = tat+sum-arrival_time[i];  
 		    count =0;     
@@ -165,7 +164,7 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 	}  
 	
 	avg_wt = wt * 1.0/y;   
-	printf("\n Average Waiting Time: \t%f", avg_wt);  
+	printf("Average Waiting Time: %f", avg_wt);  
 	
 	getch();  
 }
@@ -174,13 +173,12 @@ void fcFs(FILE *fptr, int y) {
 	
 	int limit =y;
 	
-	int process_id[20], arrival_time[20], burst_time[20], temp[20],wt[20],tat[20],i,j;
-	float avwt=0,avtat=0;
+	int process_id[20], arrival_time[20], burst_time[20],wt[20],tat[20],i,j;
+	float avwt=0;
 	
 	for(i=0;i<limit;i++)
       {
             fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
-            temp[i] = burst_time[i];
       }
 	
 	wt[0]=0;    //waiting time for first process is 0
@@ -195,15 +193,13 @@ void fcFs(FILE *fptr, int y) {
  
     //calculating turnaround time
     
-    int startTime = 0;
-    int endTime = burst_time[0];
     for(i=0;i<y;i++)
     {
         
 		tat[i]=burst_time[i]+wt[i];
             avwt+=wt[i];
             //printf("\nP[%d]\t\t%d\t\t%d\t\t%d",i+1,burst_time[i],wt[i],tat[i]);
-       	printf("P[%d]\n", i+1);
+       	printf("P[%d]\n", i);
 		printf("Start time: %d   End time: %d\n", wt[i], wt[i]+burst_time[i]);
 		printf("Waiting time: %d\n", wt[i]);
 		printf("Turn around time: %d\n", tat[i]);
