@@ -189,19 +189,82 @@ void PreemptSJF(FILE *fptr, int y){
       printf("Average waiting time: %lf\n",average_waiting_time);
 }
 
+void swap(int* xp, int* yp)
+{
+    int temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+ 
+// Function to perform Selection Sort
+void selectionSort(int arr[], int n, int arr2[])
+{
+    int i, j, min_idx;
+ 
+    // One by one move boundary of unsorted subarray
+    for (i = 0; i < n - 1; i++) {
+ 
+        // Find the minimum element in unsorted array
+        min_idx = i;
+        for (j = i + 1; j < n; j++)
+            if (arr[j] < arr[min_idx])
+                min_idx = j;
+ 
+        // Swap the found minimum element
+        // with the first element
+        swap(&arr[min_idx], &arr[i]);
+        swap(&arr2[min_idx], &arr2[i]);
+    }
+}
+
+
 void roundRobin (FILE *fptr, int y, int quantum) {
 	
     int i, sum=0,count=0, wt=0, tat=0, limit=y;
     int qt = quantum;
-    int process_id[100], arrival_time[100], burst_time[100], temp[100];
+    int process_id[100], arrival_time[100], burst_time[100], temp[100], sorted_arrival[100], sorted_burst[100];
     float avg_wt; 
     
     for(i=0;i<limit;i++)
     {
         fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
         temp[i] = burst_time[i];
+        sorted_arrival[i] = arrival_time[i];
+        sorted_burst[i] = burst_time[i];
     }
       
+    int startTime[100];
+    selectionSort(sorted_arrival, limit, sorted_burst);
+    //selectionSort(sorted_burst, limit);
+    
+    
+    int startVal = 0;
+    for (i = 0; i < limit; i++) {
+    	
+    	if (i == 0) {
+    		startVal = sorted_arrival[i];
+    		startTime[i] = sorted_arrival[i];
+    		if (qt > sorted_burst[i]) {
+				startVal += sorted_burst[i];
+				
+			} else {
+				startVal += qt;
+				
+			}
+    		
+		} else {
+			if (qt > sorted_burst[i]) {
+				
+				startTime[i] = startVal;
+				startVal += sorted_burst[i];
+			} else {
+				
+				startTime[i] = startVal;
+				startVal += qt;
+			}
+		}
+	}
+    
     
     for(sum=0, i = 0; limit!=0; )  
 	{  
@@ -219,15 +282,19 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		if(temp[i]==0 && count==1)  
 		{  
 		    limit--; 
-		    //printf("\nProcess No[%d] \t\t %d\t\t\t\t %d\t\t\t %d", i+1, burst_time[i], sum-arrival_time[i], sum-arrival_time[i]-burst_time[i]);
 		    printf("P[%d]\n", i+1);
-		    printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ (sum-arrival_time[i]));
+		    printf("Start time: %d   End time: %d\n", startTime[i], arrival_time[i]+ (sum-arrival_time[i]));
 		    printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
 		    printf("Turn around time: %d\n", sum-arrival_time[i]);
 		    printf("********************\n");
 		    wt = wt+sum-arrival_time[i]-burst_time[i];  
 		    tat = tat+sum-arrival_time[i];  
-		    count =0;     
+		    
+		    count =0;
+			
+			if ((i+1) == y) {
+				break;
+			}    
 		}  
 		if(i==y-1)  
 		{  
