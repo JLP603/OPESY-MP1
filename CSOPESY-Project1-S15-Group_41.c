@@ -28,74 +28,92 @@ found.” error message and then terminates
 #include <stdlib.h>
 #include<conio.h>   // For exit() function
 void PreemptSJF(FILE *fptr, int y){
-      int limit=y;
-      int process_id[100], arrival_time[100], burst_time[100], temp[100];
-      int i, smallest, count = 0, time;
-      double wait_time = 0, turnaround_time = 0, end;
-      float average_waiting_time, average_turnaround_time;
+      int limit=y,waitingVar[y];
+      int process_id[100], arrival_time[100], burst_time[101], temp[100], ProcessCheck[y], prevProcess;
+      int waitTimeOfTask[y],startTime[y][100],endTime[y][100],StartEndTimeLen[y],turnTimeOfTask=0;
+      int i,j, smallest, count = 0, time;
+      double wait_time = 0, end;
+      float average_waiting_time;
       for(i=0;i<limit;i++)
       {
             fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
             temp[i] = burst_time[i];
+            waitTimeOfTask[i] = 0;
+            ProcessCheck[i] = 0;
+            waitingVar[i]=0;
+            StartEndTimeLen[i]=0;
       }
-      //for testing
-      /*
-      for(i=0;i<limit;i++)
-      {
-            printf("%d %d %d\n", process_id[i], arrival_time[i], burst_time[i]);
-        
-      }
-      */
-      burst_time[9] = 9999;  
-      for(time = 0; count != limit; time++)
-      {
-            smallest = 9;
-            for(i = 0; i < limit; i++)
-            {
-                  if(arrival_time[i] <= time && burst_time[i] < burst_time[smallest] && burst_time[i] > 0)
-                  {
-                        smallest = i;
-                  }
-            }
-            burst_time[smallest]--;
-            if(burst_time[smallest] == 0)
+      prevProcess=101;
+      burst_time[limit]=9999;
+      for(time=0;count!=limit;time++){
+           smallest = limit;
+           for(i=0;i<limit;i++){
+                 if(arrival_time[i]<=time && burst_time[i] <burst_time[smallest]&&burst_time[i]>0){
+                       
+                       smallest = i;
+                 }
+           }
+           if(smallest!=prevProcess&&prevProcess!=101&&ProcessCheck[prevProcess]==1){
+                printf("\nprevProcess:%d startEndTimeLen %d\n",prevProcess, StartEndTimeLen[prevProcess]);
+                 endTime[prevProcess][StartEndTimeLen[prevProcess]]=time;
+                 printf("\nENDED! %d HERE!\n",endTime[prevProcess][StartEndTimeLen[prevProcess]]);
+                 StartEndTimeLen[prevProcess]++;
+                 ProcessCheck[prevProcess]=0;
+           }
+           
+           if(ProcessCheck[smallest]==0){
+                  printf("\nsmallest:%d startEndTimeLen %d\n",smallest, StartEndTimeLen[smallest]);
+                  startTime[smallest][StartEndTimeLen[smallest]]=time;
+                  printf("\nSTARTED! %d HERE!\n",startTime[smallest][StartEndTimeLen[smallest]]);
+                  ProcessCheck[smallest]=1;
+           }
+           
+           for(i=0;i<limit;i++){
+                  if(arrival_time[i]<=time&&burst_time[i]>0&&ProcessCheck[i]==0){
+                       waitTimeOfTask[i]++;
+                 }
+           }
+           
+           prevProcess=smallest;
+
+           
+           burst_time[smallest]=burst_time[smallest]-1;
+           if(burst_time[smallest] == 0)
             {
                   count++;
                   end = time + 1;
                   wait_time = wait_time + end - arrival_time[smallest] - temp[smallest];
-                  turnaround_time = turnaround_time + end - arrival_time[smallest];
+                  printf("P[%d]\n",process_id[smallest]);
+                  endTime[smallest][StartEndTimeLen[smallest]]=end;
+                  ProcessCheck[smallest]=0;
+                  StartEndTimeLen[smallest]++;
+                  for(i=0;i<StartEndTimeLen[smallest];i++){
+                        printf("Start time: %d End time: %d\n",startTime[smallest][i],endTime[smallest][i]);
+                  }
+                  printf("Waiting time: %d\n",waitTimeOfTask[smallest]);
+                  for(i=0;i<StartEndTimeLen[smallest];i++)
+                  {
+                        turnTimeOfTask=turnTimeOfTask+endTime[smallest][i];
+                  }
+                  for(i=0;i<StartEndTimeLen[smallest];i++)
+                  {
+                        turnTimeOfTask=turnTimeOfTask-startTime[smallest][i];
+                  }
+                  turnTimeOfTask=turnTimeOfTask+waitTimeOfTask[smallest];
+                  printf("Turnaround time: %d\n",turnTimeOfTask);
+                  printf("************************************\n");
+                  ProcessCheck[smallest]=3;
+                  turnTimeOfTask=0;
             }
-      }
-      average_waiting_time = wait_time / limit; 
-      average_turnaround_time = turnaround_time / limit;
-      printf("\n\nAverage Waiting Time:\t%lf\n", average_waiting_time);
-      printf("Average Turnaround Time:\t%lf\n", average_turnaround_time);
-       /*
-      Sample output:
-            P[A]
-            Start time: <S1> End time: <E1>
-            Start time: <S2> End time: <E2>
-            …
-            Start time: <SN> End time: <EN>
-            Waiting time: <WT>
-            Turnaround time: <TT>
-            ************************************
-            P[A]
-            Start time: <S1> End time: <E1>
-            Start time: <S2> End time: <E2>
-            …
-            Start time: <SN> End time: <EN>
-            Waiting time: <WT>
-            Turnaround time: <TT>
-            ************************************
-            Average waiting time: <AWT>
-      */
+     }
+      average_waiting_time=wait_time/limit; 
+      printf("Average waiting time: %lf\n",average_waiting_time);
 }
 
 void roundRobin (FILE *fptr, int y, int quantum) {
 	
-	int i, sum=0,count=0, quant, wt=0, tat=0, limit=y;
-	int qt = quantum;
+    int i, sum=0,count=0, quant, wt=0, tat=0, limit=y;
+    int qt = quantum;
     int process_id[100], arrival_time[100], burst_time[100], temp[100];
     float avg_wt, avg_tat; 
     
@@ -123,11 +141,11 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		{  
 		    limit--; 
 		    //printf("\nProcess No[%d] \t\t %d\t\t\t\t %d\t\t\t %d", i+1, burst_time[i], sum-arrival_time[i], sum-arrival_time[i]-burst_time[i]);
-			printf("P[%d]\n", i+1);
-			printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ (sum-arrival_time[i]));
-			printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
-			printf("Turn around time: %d\n", sum-arrival_time[i]);
-			printf("********************\n\n");
+		    printf("P[%d]\n", i+1);
+		    printf("Start time: %d   End time: %d\n", arrival_time[i], arrival_time[i]+ (sum-arrival_time[i]));
+		    printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
+		    printf("Turn around time: %d\n", sum-arrival_time[i]);
+		    printf("********************\n\n");
 		    wt = wt+sum-arrival_time[i]-burst_time[i];  
 		    tat = tat+sum-arrival_time[i];  
 		    count =0;     
@@ -146,14 +164,10 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		}  
 	}  
 	
-	avg_wt = wt * 1.0/y;  
-	avg_tat = tat * 1.0/y;  
-	//printf("\n Average Turn Around Time: \t%f", avg_wt);  
-	printf("\n Average Waiting Time: \t%f", avg_tat);  
+	avg_wt = wt * 1.0/y;   
+	printf("\n Average Waiting Time: \t%f", avg_wt);  
 	
 	getch();  
-    
-	
 }
 
 void fcFs(FILE *fptr, int y) {
@@ -170,16 +184,14 @@ void fcFs(FILE *fptr, int y) {
       }
 	
 	wt[0]=0;    //waiting time for first process is 0
- 
-    //calculating waiting time
-    for(i=1;i<y;i++)
-    {
-        wt[i]=0;
-        for(j=0;j<i;j++)
-            wt[i]+=burst_time[j];
-    }
- 
-    
+
+      //calculating waiting time
+      for(i=1;i<y;i++)
+      {
+            wt[i]=0;
+            for(j=0;j<i;j++)
+                  wt[i]+=burst_time[j];
+      }
  
     //calculating turnaround time
     
@@ -189,9 +201,8 @@ void fcFs(FILE *fptr, int y) {
     {
         
 		tat[i]=burst_time[i]+wt[i];
-        avwt+=wt[i];
-        avtat+=tat[i];
-        //printf("\nP[%d]\t\t%d\t\t%d\t\t%d",i+1,burst_time[i],wt[i],tat[i]);
+            avwt+=wt[i];
+            //printf("\nP[%d]\t\t%d\t\t%d\t\t%d",i+1,burst_time[i],wt[i],tat[i]);
        	printf("P[%d]\n", i+1);
 		printf("Start time: %d   End time: %d\n", wt[i], wt[i]+burst_time[i]);
 		printf("Waiting time: %d\n", wt[i]);
@@ -201,9 +212,7 @@ void fcFs(FILE *fptr, int y) {
     }
  
     avwt/=i;
-    avtat/=i;
     printf("\nAverage Waiting Time:%.2f",avwt);
-    //printf("\nAverage Turnaround Time:%d",avtat);
 	
 }
 
@@ -214,7 +223,8 @@ int main()
       int x,y,z;
       char filename[50];
       //enter file name as input
-      //checks if file exists reads data from file, else output error txt
+      //checks if the file exists in the location or folder where this c file is located
+      //reads data from file, or else it outputs error txt on the console.
       printf("\nEnter the filename of the input file (ex:input.txt):");
       scanf("%s", filename);
       fptr = fopen(filename, "r"); 
@@ -228,16 +238,16 @@ int main()
             fscanf(fptr, "%d %d %d\n", &x, &y, &z);
             //For testing
 		//printf("%d %d %d found!\n",x,y,z);
-			if (x == 0) {
-				fcFs(fptr, y);
-			}
+		if (x == 0) {
+			fcFs(fptr, y);
+		}
             if(x==2)
             {
               PreemptSJF(fptr, y);
             } 
-			if (x == 3) {
-            	roundRobin(fptr, y, z);
-			}
+		if (x == 3) {
+                  roundRobin(fptr, y, z);
+		}
             fclose(fptr);
       }
       
