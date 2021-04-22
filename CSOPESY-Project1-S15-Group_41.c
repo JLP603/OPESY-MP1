@@ -220,10 +220,9 @@ void selectionSort(int arr[], int n, int arr2[])
 
 void roundRobin (FILE *fptr, int y, int quantum) {
 	
-    int i, sum=0,count=0, wt=0, tat=0, limit=y;
-    int qt = quantum;
+    int i, sum=0, itercount =0, waiting_time = 0, turnaround_time =0, limit=y, qt = quantum;;
     int process_id[100], arrival_time[100], burst_time[100], temp[100], sorted_arrival[100], sorted_burst[100];
-    float avg_wt; 
+    float average_weight_time; 
     
     for(i=0;i<limit;i++)
     {
@@ -233,10 +232,10 @@ void roundRobin (FILE *fptr, int y, int quantum) {
         sorted_burst[i] = burst_time[i];
     }
       
+      
     int startTime[100];
     selectionSort(sorted_arrival, limit, sorted_burst);
     //selectionSort(sorted_burst, limit);
-    
     
     int startVal = 0;
     for (i = 0; i < limit; i++) {
@@ -265,97 +264,79 @@ void roundRobin (FILE *fptr, int y, int quantum) {
 		}
 	}
     
-    
-    for(sum=0, i = 0; limit!=0; )  
-	{  
-		if(temp[i] <= qt && temp[i] > 0) {
-		
+	for (sum = 0, i = 0; limit !=0;) {  
+		if((temp[i] > 0) &&  (temp[i] <= qt)) {
+			itercount = 1;  
 		    sum = sum + temp[i];  
 		    temp[i] = 0;  
-		    count=1;  
-		    }     
-		else if(temp[i] > 0)  
-		{  
+		    
+		}  else if(temp[i] > 0) {  
 		    temp[i] = temp[i] - qt;  
 		    sum = sum + qt;    
-		}  
-		if(temp[i]==0 && count==1)  
-		{  
+		}  if(itercount ==1 &&  temp[i]==0)  {  
 		    limit--; 
+		    waiting_time = waiting_time + sum-arrival_time[i]-burst_time[i];  
+		    turnaround_time  = turnaround_time +sum-arrival_time[i];  
 		    printf("P[%d]\n", i+1);
 		    printf("Start time: %d   End time: %d\n", startTime[i], arrival_time[i]+ (sum-arrival_time[i]));
 		    printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
 		    printf("Turn around time: %d\n", sum-arrival_time[i]);
 		    printf("********************\n");
-		    wt = wt+sum-arrival_time[i]-burst_time[i];  
-		    tat = tat+sum-arrival_time[i];  
-		    
-		    count =0;
-			
+		    itercount =0;
 			if ((i+1) == y) {
 				break;
 			}    
-		}  
-		if(i==y-1)  
-		{  
+		}  if(i==y-1) {  
 		    i=0;  
-		}  
-		else if(arrival_time[i+1]<=sum)  
-		{  
+		}  else if(arrival_time[i+1]<=sum)  {  
 		    i++;  
-		}  
-		else  
-		{  
+		}  else  {  
 			i=0;  
 		}  
 	}  
 	
-	avg_wt = wt * 1.0/y;   
-	printf("Average Waiting Time: %f", avg_wt);  
+	average_weight_time = waiting_time * 1.0/y;   
+	printf("Average Waiting Time: %f", average_weight_time);  
 	
-	getch();  
+	 
 }
 
 void fcFs(FILE *fptr, int y) {
 	
-	int limit =y;
+	int limit =y, i,j;
+	int process_id[100], arrival_time[100], burst_time[100],waiting_time[100],turnaround_time[100];
+	float average_weight_time = 0;
 	
-	int process_id[20], arrival_time[20], burst_time[20],wt[20],tat[20],i,j;
-	float avwt=0;
-	
-	for(i=0;i<limit;i++)
-      {
+	for(i=0;i<limit;i++) {
             fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
-      }
-	
-	wt[0]=0;    //waiting time for first process is 0
+    }  
 
-      //calculating waiting time
-      for(i=1;i<y;i++)
-      {
-            wt[i]=0;
-            for(j=0;j<i;j++)
-                  wt[i]+=burst_time[j];
-      }
- 
-    //calculating turnaround time
+    //to get waiting time
+    waiting_time[0]=0; 
+    for( i= 1;i < y; i++) {
+        waiting_time[i]=0;
+        for(j=0;j<i;j++) {
+        	waiting_time[i] += burst_time[j];
+		}
+            
+    }
+    int itercount;
     
-    for(i=0;i<y;i++)
-    {
-        
-		tat[i]=burst_time[i]+wt[i];
-            avwt+=wt[i];
-            //printf("\nP[%d]\t\t%d\t\t%d\t\t%d",i+1,burst_time[i],wt[i],tat[i]);
+    for(i = 0; i<y; i++){
+    	
+		turnaround_time[i]=burst_time[i]+waiting_time[i];
+        average_weight_time+=waiting_time[i];
        	printf("P[%d]\n", i);
-		printf("Start time: %d   End time: %d\n", wt[i], wt[i]+burst_time[i]);
-		printf("Waiting time: %d\n", wt[i]);
-		printf("Turn around time: %d\n", tat[i]);
+		printf("Start time: %d   End time: %d\n", waiting_time[i], waiting_time[i]+burst_time[i]);
+		printf("Waiting time: %d\n", waiting_time[i]);
+		printf("Turn around time: %d\n", turnaround_time[i]);
 		printf("********************\n\n");
 		
     }
- 
-    avwt/=i;
-    printf("\nAverage Waiting Time:%.2f",avwt);
+    
+ 	itercount = i;
+    average_weight_time = average_weight_time / itercount;
+    printf("Average Waiting Time:%f",average_weight_time);
 	
 }
 
