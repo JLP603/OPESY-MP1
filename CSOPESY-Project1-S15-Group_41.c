@@ -27,6 +27,88 @@ found.” error message and then terminates
 #include <stdio.h>
 #include <stdlib.h>
 #include<conio.h>   // For exit() function
+
+void nonPreSJF (FILE *fptr, int y){
+	int i, j, total=0, pos, temp, limit = y, zero = 0;
+	int arrival_time[100], burst_time[100], process_id[100], wait_time[100], ta_time[100];
+	float avg_wait_time;
+	
+	for(i = 0; i < limit; i++){
+        fscanf(fptr, "%d %d %d", &process_id[i], &arrival_time[i], &burst_time[i]);
+    }
+    
+    //sorting of arrival times so that the process with an arrival timem of 0 comes first
+    
+    
+    for(i = 0; i < limit; i++){
+        pos = i;
+        // for each 0 it will increment the value of a variable zero
+        for(j = i+1; j < limit; j++){
+            if(arrival_time[j] < arrival_time[pos]){
+            	pos = j;
+            	if(arrival_time[j] == 0){
+            		zero++;
+				}
+            }
+        }
+        temp = burst_time[i];
+        burst_time[i] = burst_time[pos];
+        burst_time[pos] = temp;
+        temp = process_id[i];
+        process_id[i] = process_id[pos];
+        process_id[pos] = temp;
+        temp = arrival_time[i];
+        arrival_time[i] = arrival_time[pos];
+        arrival_time[pos] = temp;
+    }
+    
+    
+    
+	//sorting of burst times
+    for(i = zero; i < limit; i++){
+        pos = i;
+        for(j = i+1; j < limit; j++){
+            if(burst_time[j] < burst_time[pos]){
+            	pos = j;
+            }
+        }
+        temp = burst_time[i];
+        burst_time[i] = burst_time[pos];
+        burst_time[pos] = temp;
+        temp = process_id[i];
+        process_id[i] = process_id[pos];
+        process_id[pos] = temp;
+        temp = arrival_time[i];
+        arrival_time[i] = arrival_time[pos];
+        arrival_time[pos] = temp;
+    }
+    
+    wait_time[0] = 0;
+	          
+    for(i = 1; i < limit; i++){
+        wait_time[i] = 0;
+        for(j = 0; j < i; j++){
+            wait_time[i] += burst_time[j];
+        }
+        total += wait_time[i];
+    }
+    
+    avg_wait_time = (float)total/limit;      
+    total = 0;
+    
+    for(i = 0; i < limit; i++){
+        ta_time[i] = burst_time[i] + wait_time[i];   
+        total += ta_time[i];
+        printf("P[%d]\n", process_id[i]);
+		printf("Start time: %d   End time: %d\n", wait_time[i], wait_time[i] + burst_time[i]);
+		printf("Waiting time: %d\n", wait_time[i]);
+		printf("Turn around time: %d\n", ta_time[i]);
+		printf("********************\n\n");
+    }
+    
+    printf("Average Waiting Time=%f", avg_wait_time);
+}
+
 void PreemptSJF(FILE *fptr, int y){
       int limit=y;
       int process_id[100], arrival_time[100], burst_time[101], temp[100], ProcessCheck[y], prevProcess;
