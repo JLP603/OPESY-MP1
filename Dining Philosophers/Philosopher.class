@@ -1,4 +1,3 @@
-//Thread or Semaphore?
 //reference: https://www.baeldung.com/java-dining-philoshophers
 
 public class Philosopher implements Runnable {
@@ -11,10 +10,6 @@ public class Philosopher implements Runnable {
         this.rightFork = rightFork;
     }
 
-    @Override
-    public void run() {
-        // Yet to populate this method
-    }
     private void doAction(String action) throws InterruptedException {
         System.out.println(
           Thread.currentThread().getName() + " " + action);
