@@ -7,10 +7,23 @@ public class Activity2 {
     }    
 }
 /*
-//reference: https://www.geeksforgeeks.org/dining-philosophers-solution-using-monitors/
+
 // We must make a solution to the dining philosopher problem using monitors that follow sthe structure of chapter 5.8.2 of the book
+Create five philosophers, each identified by a number 0...4. Each philosopher  should run as a separate thread. 
+When a philosopher wishes to eat, it should call the method pickup(i), where i identifies the number of the philosopher wishing to eat. 
+When a philosopher finishes eating, it invokes putdown(i). A philosopher may pick up the chopsticks only if both of them are available. 
+2. When a philosopher is thinking the philosopher should print: Philosopher i is thinking." with i being the number of the philosopher who is thinking. After printing the philosopher thread should sleep for a random amount of time. 
+
+3. When a philosopher is eating the philosopher should print: Philosopher i is eating." with i being the number of the philosopher who is eating. After printing the philosopher thread should sleep for a random amount of time.
+
+4.  When a philosopher acquires both of its chopsticks the philosopher should print: Philosopher i acquired its left and right chopsticks." with i being the number of the philosopher who acquired its chopsticks. 
+When a philosopher releases both of its chopsticks the philosopher should print: Philosopher i released its left and right chopsticks." with i being the number of the philosopher who released its chopsticks
+
+The Java API provides support for semaphores, condition variables, and mutex locks (among other concurrency mechanisms) in the java.util.concurrent package.
+ You can use them for your solution. Do not use other packages/your own packages so I can run it independent of the file organization in your computer or whatever IDE you used.
 
 // Dining-Philosophers Solution Using Monitors
+//reference: https://www.geeksforgeeks.org/dining-philosophers-solution-using-monitors/
 monitor DP
 {
     status state[5];
@@ -79,4 +92,126 @@ for
         state[i] = thinking;
     }
 } // end of monitor
+*/
+/*
+//dining philosopher using semaphores
+//https://hasitha-chandula.medium.com/the-dining-philosophers-problem-solution-in-java-223daf103c2
+package com.company;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
+
+public class Main {
+
+    static int philosopher = 5;
+    static philosopher philosophers[] = new philosopher[philosopher];
+    static chopstick chopsticks[] = new chopstick[philosopher];
+
+    static class chopstick {
+
+        public Semaphore mutex = new Semaphore(1);
+
+        void grab() {
+            try {
+                mutex.acquire();
+            }
+            catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
+        }
+
+        void release() {
+            mutex.release();
+        }
+
+        boolean isFree() {
+            return mutex.availablePermits() > 0;
+        }
+
+    }
+
+    static class philosopher extends Thread {
+
+        public int number;
+        public chopstick leftchopstick;
+        public chopstick rightchopstick;
+
+        philosopher(int num, chopstick left, chopstick right) {
+            number = num;
+            leftchopstick = left;
+            rightchopstick = right;
+        }
+
+        public void run(){
+
+            while (true) {
+                leftchopstick.grab();
+                System.out.println("philosopher " + (number+1) + " grabs left chopstick.");
+                rightchopstick.grab();
+                System.out.println("philosopher " + (number+1) + " grabs right chopstick.");
+                eat();
+                leftchopstick.release();
+                System.out.println("philosopher " + (number+1) + " releases left chopstick.");
+                rightchopstick.release();
+                System.out.println("philosopher " + (number+1) + " releases right chopstick.");
+            }
+        }
+
+        void eat() {
+            try {
+                int sleepTime = ThreadLocalRandom.current().nextInt(0, 1000);
+                System.out.println("philosopher " + (number+1) + " eats for " + sleepTime);
+                Thread.sleep(sleepTime);
+            }
+            catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
+        }
+
+    }
+
+    public static void main(String argv[]) {
+
+        for (int i = 0; i < philosopher; i++) {
+            chopsticks[i] = new chopstick();
+        }
+
+        for (int i = 0; i < philosopher; i++) {
+            philosophers[i] = new philosopher(i, chopsticks[i], chopsticks[(i + 1) % philosopher]);
+            philosophers[i].start();
+        }
+
+        while (true) {
+            try {
+                // sleep 1 sec
+                Thread.sleep(1000);
+
+                // check for deadlock
+                boolean deadlock = true;
+                for (chopstick f : chopsticks) {
+                    if (f.isFree()) {
+                        deadlock = false;
+                        break;
+                    }
+                }
+                if (deadlock) {
+                    Thread.sleep(1000);
+                    System.out.println("Everyone Eats");
+                    break;
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace(System.out);
+            }
+        }
+
+        System.out.println("Exit The Program!");
+        System.exit(0);
+    }
+
+}
+*/
+/*
+Dining philosopher code answer using threads
+https://www.baeldung.com/java-dining-philoshophers
+
 */
