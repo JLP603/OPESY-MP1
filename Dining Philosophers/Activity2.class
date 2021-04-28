@@ -1,142 +1,82 @@
-/*
+
 //Driver Class
-//reference: https://www.baeldung.com/java-dining-philoshophers
 public class Activity2 {
 
     public static void main(String[] args) throws Exception {
+    
+    }    
+}
+/*
+//reference: https://www.geeksforgeeks.org/dining-philosophers-solution-using-monitors/
+// We must make a solution to the dining philosopher problem using monitors that follow sthe structure of chapter 5.8.2 of the book
 
-        Philosopher[] philosophers = new Philosopher[5];
-        Object[] forks = new Object[philosophers.length];
-
-        for (int i = 0; i < forks.length; i++) {
-            forks[i] = new Object();
-        }
-
-        for (int i = 0; i < philosophers.length; i++) {
-            Object leftFork = forks[i];
-            Object rightFork = forks[(i + 1) % forks.length];
-
-            philosophers[i] = new Philosopher(leftFork, rightFork);
-            
-            Thread t 
-              = new Thread(philosophers[i], "Philosopher " + (i + 1));
-            t.start();
+// Dining-Philosophers Solution Using Monitors
+monitor DP
+{
+    status state[5];
+    condition self[5];
+  
+    // Pickup chopsticks
+    Pickup(int i)
+    {
+        // indicate that I’m hungry
+        state[i] = hungry;
+  
+        // set state to eating in test()
+        // only if my left and right neighbors 
+        // are not eating
+        test(i);
+  
+        // if unable to eat, wait to be signaled
+        if (state[i] != eating)
+            self[i].wait;
+    }
+  
+    // Put down chopsticks
+    Putdown(int i)
+    {
+  
+        // indicate that I’m thinking
+        state[i] = thinking;
+  
+        // if right neighbor R=(i+1)%5 is hungry and
+        // both of R’s neighbors are not eating,
+        // set R’s state to eating and wake it up by 
+        // signaling R’s CV
+        test((i + 1) % 5);
+        test((i + 4) % 5);
+    }
+  
+    test(int i)
+    {
+  
+        if (state[(i + 1) % 5] != eating
+            && state[(i + 4) % 5] != eating
+            && state[i] == hungry) {
+  
+            // indicate that I’m eating
+            state[i] = eating;
+  
+            // signal() has no effect during Pickup(),
+            // but is important to wake up waiting
+            // hungry philosophers during Putdown()
+            self[i].signal();
         }
     }
-}
-
+  
+    init()
+    {
+  
+        // Execution of Pickup(), Putdown() and test()
+        // are all mutually exclusive,
+        // i.e. only one at a time can be executing
+for
+    i = 0 to 4
+  
+        // Verify that this monitor-based solution is
+        // deadlock free and mutually exclusive in that
+        // no 2 neighbors can eat simultaneously
+        state[i] = thinking;
+    }
+} // end of monitor
 */
-//reference used for code below: https://hasitha-chandula.medium.com/the-dining-philosophers-problem-solution-in-java-223daf103c2
-package com.company;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadLocalRandom;
-
-public class Main {
-
-    static int philosopher = 5;
-    static philosopher philosophers[] = new philosopher[philosopher];
-    static chopstick chopsticks[] = new chopstick[philosopher];
-
-    static class chopstick {
-
-        public Semaphore mutex = new Semaphore(1);
-
-        void grab() {
-            try {
-                mutex.acquire();
-            }
-            catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-
-        void release() {
-            mutex.release();
-        }
-
-        boolean isFree() {
-            return mutex.availablePermits() > 0;
-        }
-
-    }
-
-    static class philosopher extends Thread {
-
-        public int number;
-        public chopstick leftchopstick;
-        public chopstick rightchopstick;
-
-        philosopher(int num, chopstick left, chopstick right) {
-            number = num;
-            leftchopstick = left;
-            rightchopstick = right;
-        }
-
-        public void run(){
-
-            while (true) {
-                leftchopstick.grab();
-                System.out.println("philosopher " + (number+1) + " grabs left chopstick.");
-                rightchopstick.grab();
-                System.out.println("philosopher " + (number+1) + " grabs right chopstick.");
-                eat();
-                leftchopstick.release();
-                System.out.println("philosopher " + (number+1) + " releases left chopstick.");
-                rightchopstick.release();
-                System.out.println("philosopher " + (number+1) + " releases right chopstick.");
-            }
-        }
-
-        void eat() {
-            try {
-                int sleepTime = ThreadLocalRandom.current().nextInt(0, 1000);
-                System.out.println("philosopher " + (number+1) + " eats for " + sleepTime);
-                Thread.sleep(sleepTime);
-            }
-            catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-
-    }
-
-    public static void main(String argv[]) {
-
-        for (int i = 0; i < philosopher; i++) {
-            chopsticks[i] = new chopstick();
-        }
-
-        for (int i = 0; i < philosopher; i++) {
-            philosophers[i] = new philosopher(i, chopsticks[i], chopsticks[(i + 1) % philosopher]);
-            philosophers[i].start();
-        }
-
-        while (true) {
-            try {
-                // sleep 1 sec
-                Thread.sleep(1000);
-
-                // check for deadlock
-                boolean deadlock = true;
-                for (chopstick f : chopsticks) {
-                    if (f.isFree()) {
-                        deadlock = false;
-                        break;
-                    }
-                }
-                if (deadlock) {
-                    Thread.sleep(1000);
-                    System.out.println("Everyone Eats");
-                    break;
-                }
-            }
-            catch (Exception e) {
-                e.printStackTrace(System.out);
-            }
-        }
-
-        System.out.println("Exit The Program!");
-        System.exit(0);
-    }
-
-}
