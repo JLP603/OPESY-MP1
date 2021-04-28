@@ -56,7 +56,9 @@ Turnaround time: <TT>
 Average waiting time: <AWT>
 */
 #include<stdio.h> 
- 
+#include <stdlib.h>
+#include<conio.h> 
+
 #define N 10 
  
 typedef struct 
@@ -77,12 +79,23 @@ int Queue(int t1)
       }
 } 
  
-int multilvl() 
+int multilvl(FILE *fptr, int x, int process_num, int z) 
 { 
       int limit, count, temp_process, time, j, y; 
       process_structure temp; 
+      /*
       printf("Enter Total Number of Processes:\t"); 
       scanf("%d", &limit);
+      */
+      limit=process_num;
+/*
+//code to keep on reading lines of code with 3 variables
+for(i = 0; i < limit; i++){
+        fscanf(fptr, "%d %d %d", &process_id[i], &arrival_time[i], &burst_time[i]);
+    }
+*/
+fclose(fptr);
+
       process_structure process[limit]; 
       for(count = 0; count < limit; count++) 
       { 
@@ -157,6 +170,91 @@ int multilvl()
       } 
       return 0; 
 }
+/*
+//Shaun's Round Robin Code
+void roundRobin (FILE *fptr, int y, int quantum) {
+	
+    int i, sum=0, itercount =0, waiting_time = 0, turnaround_time =0, limit=y, qt = quantum;;
+    int process_id[100], arrival_time[100], burst_time[100], temp[100], sorted_arrival[100], sorted_burst[100];
+    float average_weight_time; 
+    
+    for(i=0;i<limit;i++)
+    {
+        fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i]);
+        temp[i] = burst_time[i];
+        sorted_arrival[i] = arrival_time[i];
+        sorted_burst[i] = burst_time[i];
+    }
+      
+      
+    int startTime[100];
+    selectionSort(sorted_arrival, limit, sorted_burst);
+    //selectionSort(sorted_burst, limit);
+    
+    int startVal = 0;
+    for (i = 0; i < limit; i++) {
+    	
+    	if (i == 0) {
+    		startVal = sorted_arrival[i];
+    		startTime[i] = sorted_arrival[i];
+    		if (qt > sorted_burst[i]) {
+				startVal += sorted_burst[i];
+				
+			} else {
+				startVal += qt;
+				
+			}
+    		
+		} else {
+			if (qt > sorted_burst[i]) {
+				
+				startTime[i] = startVal;
+				startVal += sorted_burst[i];
+			} else {
+				
+				startTime[i] = startVal;
+				startVal += qt;
+			}
+		}
+	}
+    
+	for (sum = 0, i = 0; limit !=0;) {  
+		if((temp[i] > 0) &&  (temp[i] <= qt)) {
+			itercount = 1;  
+		    sum = sum + temp[i];  
+		    temp[i] = 0;  
+		    
+		}  else if(temp[i] > 0) {  
+		    temp[i] = temp[i] - qt;  
+		    sum = sum + qt;    
+		}  if(itercount ==1 &&  temp[i]==0)  {  
+		    limit--; 
+		    waiting_time = waiting_time + sum-arrival_time[i]-burst_time[i];  
+		    turnaround_time  = turnaround_time +sum-arrival_time[i];  
+		    printf("P[%d]\n", i+1);
+		    printf("Start time: %d   End time: %d\n", startTime[i], arrival_time[i]+ (sum-arrival_time[i]));
+		    printf("Waiting time: %d\n", sum-arrival_time[i]-burst_time[i]);
+		    printf("Turn around time: %d\n", sum-arrival_time[i]);
+		    printf("********************\n");
+		    itercount =0;
+			if ((i+1) == y) {
+				break;
+			}    
+		}  if(i==y-1) {  
+		    i=0;  
+		}  else if(arrival_time[i+1]<=sum)  {  
+		    i++;  
+		}  else  {  
+			i=0;  
+		}  
+	}  
+	
+	average_weight_time = waiting_time * 1.0/y;   
+	printf("Average Waiting Time: %f", average_weight_time);  
+	
+	 
+}
+*/
 
 int main() 
 {
@@ -179,7 +277,8 @@ int main()
             fscanf(fptr, "%d %d %d\n", &x, &y, &z);
             //For testing
 		//printf("%d %d %d found!\n",x,y,z);
-		multilvl();
+		multilvl(fptr,x,y,z);
+      }
       
       return 0;
 }
