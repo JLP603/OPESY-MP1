@@ -1,17 +1,17 @@
-//reference: https://www.baeldung.com/java-dining-philoshophers
 public class Philosopher implements Runnable {
 
-    private Object leftFork;
-    private Object rightFork;
+    private Object leftchopstick;
+    private Object rightchopstick;
 
-    public Philosopher(Object leftFork, Object rightFork) {
-        this.leftFork = leftFork;
-        this.rightFork = rightFork;
+    public Philosopher(Object leftchopstick, Object rightchopstick) {
+        this.leftchopstick = leftchopstick;
+        this.rightchopstick = rightchopstick;
     }
     private void doAction(String action) throws InterruptedException {
         System.out.println(
+          //gets name of currently running thread
           Thread.currentThread().getName() + " " + action);
-        Thread.sleep(((int) (Math.random() * 100)));
+        Thread.sleep(((int) (Math.random() * 10000))); //sleeps for a random duraton between 0 and 10 secs note 10000 is 10000 miliseconds
     }
 
      @Override
@@ -19,27 +19,21 @@ public class Philosopher implements Runnable {
          try {
              while (true) {
                  
-                 // thinking
-                 doAction(System.nanoTime() + ": Thinking");
-                 synchronized (leftFork) {
-                     doAction(
-                       System.nanoTime() 
-                         + ": Picked up left fork");
-                     synchronized (rightFork) {
+                 //thinking
+                 //doAction(System.nanoTime() + "is thinking");
+                 doAction("is thinking");
+                 synchronized (leftchopstick) {
+                   //picks up left chopstick
+                     synchronized (rightchopstick) {
+                         //picked up right chopstick
+                         System.out.println(Thread.currentThread().getName() + " acquired its left and right chopsticks.");
                          // eating
-                         doAction(
-                           System.nanoTime() 
-                             + ": Picked up right fork - eating"); 
-                         
-                         doAction(
-                           System.nanoTime() 
-                             + ": Put down right fork");
+                         doAction("is eating"); 
+                         //puts down right chopstick
                      }
-                     
-                     // Back to thinking
-                     doAction(
-                       System.nanoTime() 
-                         + ": Put down left fork. Back to thinking");
+                     //puts down left chopstick
+                     System.out.println(Thread.currentThread().getName() + " released its left and right chopsticks.");
+                     //thinking
                  }
              }
          } catch (InterruptedException e) {
