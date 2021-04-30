@@ -74,7 +74,10 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       //schedule tasks by round robin
       //move task to lower queue if exceeds queue's quantum
       //keep checking for prio boost time if it is prio boost time move all tasks to top queue
-
+      //supposedly when your reach IO burst time you are free to do other process having the task readded to the queue after the IO burst time completes (the one with the least CPU burst time AKA Total exec time-(wait time*(total exec time / time interval))
+      //quantum is not used during io wait
+      //quantum is more important than prio boost which will delay but for our purposes stick to checking when the prio boost happens to it interval
+      //prio boosted items and moved to the top most queue can be arranged by arrival time or order
       fclose(fptr);
 
 }
