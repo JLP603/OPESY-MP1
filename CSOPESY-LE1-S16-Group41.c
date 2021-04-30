@@ -61,14 +61,19 @@ Average waiting time: <AWT>
 
 void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time) 
 { 
-       int queue_id[5], queue_prio[5], quantum[5];
+      int queue_id[5], queue_prio[5], quantum[5];
       int process_id[100], arrival_time[100], burst_time[100],IO_burst_time[100],burst_interval[100];
       for(int i = 0; i < queue_num; i++){
         fscanf(fptr, "%d %d %d\n", &queue_id[i], &queue_prio[i], &quantum[i]);
-    }
+      }
       for(int i = 0; i < process_num; i++){
         fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i], &IO_burst_time, &burst_interval);
-    }
+      }
+      //sort queue by prio
+      //sort processes by io_burst time?
+      //schedule tasks by round robin
+      //move task to lower queue if exceeds queue's quantum
+      //keep checking for prio boost time if it is prio boost time move all tasks to top queue
 
       fclose(fptr);
 
