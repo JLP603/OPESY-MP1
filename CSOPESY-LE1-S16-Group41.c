@@ -59,6 +59,26 @@ Average waiting time: <AWT>
 #include <stdlib.h>
 #include<conio.h> 
 
+void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time) 
+{ 
+       int queue_id[5], queue_prio[5], quantum[5];
+      int process_id[100], arrival_time[100], burst_time[100],IO_burst_time[100],burst_interval[100];
+      for(int i = 0; i < queue_num; i++){
+        fscanf(fptr, "%d %d %d\n", &queue_id[i], &queue_prio[i], &quantum[i]);
+    }
+      for(int i = 0; i < process_num; i++){
+        fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i], &IO_burst_time, &burst_interval);
+    }
+
+      fclose(fptr);
+
+}
+//lower prio queues (queues with higher quantum values) are not able to run until the higher prio ones are finished
+//use round robin to schedule all the individual queues
+//if the task didnt finish in the alloted quantum of the queue it will go down a queue to its tail.
+/*
+#include<stdio.h> 
+ 
 #define N 10 
  
 typedef struct 
@@ -79,23 +99,12 @@ int Queue(int t1)
       }
 } 
  
-int multilvl(FILE *fptr, int x, int process_num, int z) 
+int main() 
 { 
       int limit, count, temp_process, time, j, y; 
       process_structure temp; 
-      /*
       printf("Enter Total Number of Processes:\t"); 
-      scanf("%d", &limit);
-      */
-      limit=process_num;
-/*
-//code to keep on reading lines of code with 3 variables
-for(i = 0; i < limit; i++){
-        fscanf(fptr, "%d %d %d", &process_id[i], &arrival_time[i], &burst_time[i]);
-    }
-*/
-fclose(fptr);
-
+      scanf("%d", &limit);  
       process_structure process[limit]; 
       for(count = 0; count < limit; count++) 
       { 
@@ -170,6 +179,7 @@ fclose(fptr);
       } 
       return 0; 
 }
+*/
 /*
 //Shaun's Round Robin Code
 void roundRobin (FILE *fptr, int y, int quantum) {
