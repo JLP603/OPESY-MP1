@@ -62,8 +62,10 @@ Average waiting time: <AWT>
 void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time) 
 { 
       int queue_id[5], queue_prio[5], quantum[5];
-      int tmp;
+      int tmp,time,count=0,curr_q=0,curr_process,curr_quant,prevProcess;
       int process_id[100], arrival_time[100], burst_time[100],IO_burst_time[100],burst_interval[100];
+      int prcs_wt_time[100];
+      float avg_wt;
       for(int i = 0; i < queue_num; i++){
         fscanf(fptr, "%d %d %d\n", &queue_id[i], &queue_prio[i], &quantum[i]);
       }
@@ -76,11 +78,13 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                     queue_prio[i] = queue_prio[j];
 
                     queue_prio[j] = tmp;
+                    //
                     tmp =  queue_id[i];
 
                     queue_id[i] = queue_id[j];
 
                     queue_id[j] = tmp;
+                    //
                     tmp =  quantum[i];
 
                     quantum[i] = quantum[j];
@@ -92,29 +96,112 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       for(int i = 0; i < process_num; i++){
         fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i], &IO_burst_time, &burst_interval);
       }
-      for (int i = 0; i < queue_num; ++i){
-            for (int j = i + 1; j < queue_num; ++j){
-                if (queue_prio[i] > queue_prio[j]) {
-                    tmp =  queue_prio[i];
+      for(int i=0;i<process_num;i++){
+            prcs_wt_time[i]=0;
+      }
+      //schedule tasks by round robin in the queues and the queue's qunantum which is FCFS so...
+      //sort by arrival time
+      for (int i = 0; i < process_num; ++i){
+            for (int j = i + 1; j < process_num; ++j){
+                if (arrival_time[i] > arrival_time[j]) {
+                    tmp =  arrival_time[i];
 
-                    queue_prio[i] = queue_prio[j];
+                    arrival_time[i] = arrival_time[j];
 
-                    queue_prio[j] = tmp;
-                    tmp =  queue_id[i];
+                    arrival_time[j] = tmp;
+                    //
+                    tmp =  process_id[i];
 
-                    queue_id[i] = queue_id[j];
+                    process_id[i] = process_id[j];
 
-                    queue_id[j] = tmp;
-                    tmp =  quantum[i];
+                    process_id[j] = tmp;
+                    //
+                    tmp =  burst_time[i];
 
-                    quantum[i] = quantum[j];
+                    burst_time[i] = burst_time[j];
 
-                    quantum[j] = tmp;
+                    burst_time[j] = tmp;
+                    //
+                    tmp =  IO_burst_time[i];
+
+                    IO_burst_time[i] = IO_burst_time[j];
+
+                    IO_burst_time[j] = tmp;
+                    //
+                    tmp =  burst_interval[i];
+
+                    burst_interval[i] = burst_interval[j];
+
+                    burst_interval[j] = tmp;
+                }
+                //if the process has the same arrival time sort them by process id
+                if(arrival_time[i] == arrival_time[j])
+                {
+                      if(process_id[i] > process_id[j]){
+                        tmp =  process_id[i];
+
+                        process_id[i] = process_id[j];
+
+                        process_id[j] = tmp;
+                      }
                 }
             }
       }
-      //schedule tasks by round robin in the queues and the queue's qunantum which is FCFS so...
-      //sort by arrival time?
+      prevProcess=101;
+      //runs until the process counter is equalt to # of processes
+      for(time=0;count!=process_num;time++){
+            //check if it is prio boost time
+            //prio boost time
+            if(time%prio_boost_time==0){
+                  
+            }
+            //not prio boost time
+            else{
+                  //look at all the processes and find the one with the lowest arrival time that is also not complete
+                  for(int i=0;i<process_num;i++){
+                        if(arrival_time[i]<=time && burst_time[i]>0){
+                              curr_process=i;
+                              break;
+                        }
+                  }
+                  //check if it is the first process ever
+                  if(curr_process!=prevProcess&&prevProcess==101){
+                        curr_quant=0;
+                        //update proccess start time for new process
+                  }
+                  //check if it was the same process as last time to reset the queue's quantum
+                  if(curr_process!=prevProcess&&prevProcess!=101){
+                        curr_quant=0;
+                        //update proccess start time for new process
+                        //update process end time for previous process
+                  }
+                  //check if the process has exceeded the queue's quantum
+                  if(curr_quant>quantum[curr_q])
+                  {
+                        //update curr process end time
+                        //move the process to a lower queue
+                  }
+                  //if the quantum isnt over
+                  //check for IO burst interval
+                  //if a process finishes
+                  if(){
+                        count++;
+                        printf("P[A]\n",process_id[]);
+                        for(i=0;i<[];i++){
+                              printf("Q[%d] Start time: %d End time: %d\n",[],[],[]);
+                              printf("[IO] Start time: %d End time: %d\n",[],[]);
+                        }
+                        printf("Waiting time: %d\n",[]);
+                        printf("Turnaround time: %d\n",);
+                        printf("************************************\n";)
+
+                  }
+            }
+            prevProcess=curr_process;
+            curr_quant++;
+      }
+      printf("Average waiting time: %lf\n",avg_wt);
+
       //note each process gets a quantum instance so if it a process completes b4 the quantum is up the next process starts with a fresh quantum
       //move task to lower queue's tail if the task exceeds queue's quantum
       //new process that arrive append to the tail of lower queue
