@@ -92,6 +92,27 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       for(int i = 0; i < process_num; i++){
         fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i], &IO_burst_time, &burst_interval);
       }
+      for (int i = 0; i < queue_num; ++i){
+            for (int j = i + 1; j < queue_num; ++j){
+                if (queue_prio[i] > queue_prio[j]) {
+                    tmp =  queue_prio[i];
+
+                    queue_prio[i] = queue_prio[j];
+
+                    queue_prio[j] = tmp;
+                    tmp =  queue_id[i];
+
+                    queue_id[i] = queue_id[j];
+
+                    queue_id[j] = tmp;
+                    tmp =  quantum[i];
+
+                    quantum[i] = quantum[j];
+
+                    quantum[j] = tmp;
+                }
+            }
+      }
       //schedule tasks by round robin in the queues and the queue's qunantum which is FCFS so...
       //sort by arrival time?
       //note each process gets a quantum instance so if it a process completes b4 the quantum is up the next process starts with a fresh quantum
@@ -110,6 +131,8 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       //the IO interval is based on the times the process executes ex: process cpu burst is 10 and interval is 3. every cpu execution it IO bursts at 3 6 9
       //I/O execution occurs for all processes at the same time
       //arriving process has priority over processes coming back from IO burst
+      //wait time is the amount of time waiting for the process for the CPU (I/O does not factor into this)
+      //turn around time is the amount of time it takes to complete the process (CPU process time + waiting time)
       fclose(fptr);
 
 }
