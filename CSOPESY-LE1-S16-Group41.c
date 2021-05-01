@@ -62,22 +62,54 @@ Average waiting time: <AWT>
 void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time) 
 { 
       int queue_id[5], queue_prio[5], quantum[5];
+      int tmp;
       int process_id[100], arrival_time[100], burst_time[100],IO_burst_time[100],burst_interval[100];
       for(int i = 0; i < queue_num; i++){
         fscanf(fptr, "%d %d %d\n", &queue_id[i], &queue_prio[i], &quantum[i]);
       }
+      //sort queue by prio
+      for (int i = 0; i < queue_num; ++i){
+            for (int j = i + 1; j < queue_num; ++j){
+                if (queue_prio[i] > queue_prio[j]) {
+                    tmp =  queue_prio[i];
+
+                    queue_prio[i] = queue_prio[j];
+
+                    queue_prio[j] = tmp;
+                    tmp =  queue_id[i];
+
+                    queue_id[i] = queue_id[j];
+
+                    queue_id[j] = tmp;
+                    tmp =  quantum[i];
+
+                    quantum[i] = quantum[j];
+
+                    quantum[j] = tmp;
+                }
+            }
+      }
       for(int i = 0; i < process_num; i++){
         fscanf(fptr, "%d %d %d\n", &process_id[i], &arrival_time[i], &burst_time[i], &IO_burst_time, &burst_interval);
       }
-      //sort queue by prio
-      //sort processes by io_burst time?
-      //schedule tasks by round robin
-      //move task to lower queue if exceeds queue's quantum
-      //keep checking for prio boost time if it is prio boost time move all tasks to top queue
-      //supposedly when your reach IO burst time you are free to do other process having the task readded to the queue after the IO burst time completes (the one with the least CPU burst time AKA Total exec time-(wait time*(total exec time / time interval))
+      //schedule tasks by round robin in the queues and the queue's qunantum which is FCFS so...
+      //sort by arrival time?
+      //note each process gets a quantum instance so if it a process completes b4 the quantum is up the next process starts with a fresh quantum
+      //move task to lower queue's tail if the task exceeds queue's quantum
+      //new process that arrive append to the tail of lower queue
+      //if a new process arrives at the higher level then start that first
+      //keep checking for prio boost time. if it is prio boost time move all tasks to top queue
+      //in what order that is? choose and specify if it is by queue order (and also queue priority) or by process arrival time
+      //if a process is not finished with its quantum when it is prio boost time finish the process first before prio boosting
+      //if a prio boost is delayed stick to the original time interval of prio boost (donot factor in the prio boost)
+      
+      //supposedly when your reach IO burst time you are free to do other process and so go to the nxt queue process. 
+      //the one that got IO bursted goes to another place where it cools down having the task readded to the original queue's tail after the IO burst time completes 
       //quantum is not used during io wait
-      //quantum is more important than prio boost which will delay but for our purposes stick to checking when the prio boost happens to it interval
-      //prio boosted items and moved to the top most queue can be arranged by arrival time or order
+      //cpu burst time is execution time
+      //the IO interval is based on the times the process executes ex: process cpu burst is 10 and interval is 3. every cpu execution it IO bursts at 3 6 9
+      //I/O execution occurs for all processes at the same time
+      //arriving process has priority over processes coming back from IO burst
       fclose(fptr);
 
 }
