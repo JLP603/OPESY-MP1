@@ -8,14 +8,11 @@ Section: S16
 ***************************************************************
 */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "data.h"
-
 
 // GLOBAL VAR
 int number_of_processes;
@@ -27,14 +24,6 @@ queue io;
 float avg_waiting_time;
 
 #include "datafunc.h"
-
-
-int isInteger(float value)
-{
-  int truncated = (int)value;
-  float integerValue = (float)truncated;
-  return (value == integerValue);
-}
 
 int isStringDigitsOnly(const char *str)
 {
@@ -75,18 +64,6 @@ void execute_priority_boost()
       enqueue(&q[0], p1);
     }
   }
-}
-
-void enqueue_to_topmost_queue(int current_time)
-{
-  int i;
-  for (i = 0; i < number_of_processes; i++)
-    if (p[i].arrival_time == current_time)
-    {
-      p[i].queue_index = 0;
-      p[i].time_quantum_left = q[0].time_quantum;
-      enqueue(&q[0], &p[i]);
-    }
 }
 
 int are_processes_done()
@@ -249,12 +226,20 @@ int main(void)
   FILE *fp;
   char filepath[261] = "./";
   char filename[261];
+  char line[256];
+  char *token;
   int i, j;
+
+  int current_time = 0;
+  process *p1 = NULL;
+  int priority_boost_flag = 0;
 
   float X, Y, S;
   float A[100], B[100], C[100];
   float F[100], G[100], H[100], I[100], J[100];
   int dX, dY;
+
+  avg_waiting_time = 0;
 
   printf("Enter filename : ");
   scanf("%s", filename);
@@ -263,118 +248,108 @@ int main(void)
 
   fp = fopen(filepath, "r");
 
-  if (fp != NULL)
+  if (fp == NULL)
   {
+    printf("cannot find file \"%s\"", filename);
+    exit(1);
+  }
 
-    // checking for non-numeric
-    char line[256];
-    char *token;
+  if (fgets(line, 256, fp) != NULL)
+  {
+    long int filePosition;
+    int tokenCounterPerLine;
+    token = strtok(line, " ");
+    tokenCounterPerLine = 0;
 
-    //read first line
-    if (fgets(line, 256, fp) != NULL)
+    while (token != NULL)
     {
-      long int filePosition;
-      int tokenCounterPerLine;
-      token = strtok(line, " ");
-      tokenCounterPerLine = 0;
+      tokenCounterPerLine++;
+      token = strtok(NULL, " ");
+    }
 
-      while (token != NULL)
+    fseek(fp, 0, SEEK_SET);
+    fscanf(fp, " %f %f %f", &X, &Y, &S);
+    dX = X;
+    dY = Y;
+    fseek(fp, 0, SEEK_SET);
+    fgets(line, 256, fp);
+
+    filePosition = ftell(fp);
+
+    for (i = 0; i < dX; i++)
+    {
+      if (fgets(line, 256, fp) != NULL)
       {
-        tokenCounterPerLine++;
-        token = strtok(NULL, " ");
-      }
+        token = strtok(line, " ");
+        tokenCounterPerLine = 0;
 
-      fseek(fp, 0, SEEK_SET);
-      fscanf(fp, " %f %f %f", &X, &Y, &S);
-      dX = (int)X;
-      dY = (int)Y;
-      fseek(fp, 0, SEEK_SET);
+        while (token != NULL)
+        {
+
+          tokenCounterPerLine++;
+
+          token = strtok(NULL, " ");
+        }
+      }
+      else
+      {
+
+        exit(1);
+      }
+    }
+
+    fseek(fp, filePosition, SEEK_SET);
+    for (i = 0; i < dX; i++)
+      fscanf(fp, " %f %f %f", &A[i], &B[i], &C[i]);
+
+    fseek(fp, filePosition, SEEK_SET);
+    for (i = 0; i < dX; i++)
       fgets(line, 256, fp);
 
-      filePosition = ftell(fp);
+    filePosition = ftell(fp);
 
-      for (i = 0; i < dX; i++)
-      {
-        if (fgets(line, 256, fp) != NULL)
-        {
-          token = strtok(line, " ");
-          tokenCounterPerLine = 0;
-
-          while (token != NULL)
-          {
-
-            tokenCounterPerLine++;
-
-            token = strtok(NULL, " ");
-          }
-        }
-        else
-        {
-
-          exit(1);
-        }
-      }
-
-      fseek(fp, filePosition, SEEK_SET);
-      for (i = 0; i < dX; i++)
-        fscanf(fp, " %f %f %f", &A[i], &B[i], &C[i]);
-
-      fseek(fp, filePosition, SEEK_SET);
-      for (i = 0; i < dX; i++)
-        fgets(line, 256, fp);
-
-      filePosition = ftell(fp);
-
-      for (i = 0; i < dY; i++)
-      {
-        if (fgets(line, 256, fp) != NULL)
-        {
-          token = strtok(line, " ");
-          tokenCounterPerLine = 0;
-
-          while (token != NULL)
-          {
-
-            tokenCounterPerLine++;
-            token = strtok(NULL, " ");
-          }
-          if (tokenCounterPerLine != 5)
-          {
-
-            exit(1);
-          }
-        }
-        else
-        {
-
-          exit(1);
-        }
-      }
-
-      fseek(fp, filePosition, SEEK_SET);
-      for (i = 0; i < dY; i++)
-        fscanf(fp, " %f %f %f %f %f", &F[i], &G[i], &H[i], &I[i], &J[i]);
-
-      fseek(fp, filePosition, SEEK_SET);
-      for (i = 0; i < dY; i++)
-        fgets(line, 256, fp);
-    }
-    else
+    for (i = 0; i < dY; i++)
     {
-      printf("Error: Cannot read first line.");
-      exit(1);
+      if (fgets(line, 256, fp) != NULL)
+      {
+        token = strtok(line, " ");
+        tokenCounterPerLine = 0;
+
+        while (token != NULL)
+        {
+          tokenCounterPerLine++;
+          token = strtok(NULL, " ");
+        }
+        if (tokenCounterPerLine != 5)
+        {
+          exit(1);
+        }
+      }
+      else
+      {
+        exit(1);
+      }
     }
+
+    fseek(fp, filePosition, SEEK_SET);
+    for (i = 0; i < dY; i++)
+      fscanf(fp, " %f %f %f %f %f", &F[i], &G[i], &H[i], &I[i], &J[i]);
+
+    fseek(fp, filePosition, SEEK_SET);
+    for (i = 0; i < dY; i++)
+      fgets(line, 256, fp);
   }
   else
   {
-    printf("\"%s\" not found.", filename);
+
     exit(1);
   }
-  fclose(fp);
 
-  number_of_queues = (int)X;
-  number_of_processes = (int)Y;
-  priority_boost_time = (int)S;
+  number_of_queues = X;
+  number_of_processes = Y;
+  priority_boost_time = S;
+
+  fclose(fp);
 
   for (i = 0; i < number_of_queues; i++)
   {
@@ -391,17 +366,15 @@ int main(void)
     p[j].io_burst_time = (int)I[j];
     p[j].io_frequency = (int)J[j];
   }
-  //readTextFile();
-  //read text file and initialize processes and queues
 
-  //initialize_processes();
+  // SETUP PROCESS AND QUEUES
 
   for (i = 0; i < number_of_processes; i++)
   {
     p[i].execution_time_left = p[i].total_execution_time;
     p[i].start_end_array_size = 0;
   }
-  //initialize_queues();
+
   for (j = 0; j < number_of_queues; j++)
   {
     q[j].front = NULL;
@@ -410,8 +383,7 @@ int main(void)
   io.front = NULL;
   io.rear = NULL;
 
-  //Sort queues, queue at index 0 (q[0]) is the highest priority queue
-
+  // SORT QUEUES VIA PRIORITY
   for (i = 0; i < number_of_queues - 1; i++)
   {
     for (j = 0; j < number_of_queues - i - 1; j++)
@@ -422,6 +394,7 @@ int main(void)
         q[j + 1] = temp;
       }
   }
+
   int previous = -1;
   for (i = 0; i < number_of_queues; i++)
   {
@@ -437,13 +410,18 @@ int main(void)
 
   // sort_queues_by_priority();
 
-  int current_time = 0;
-  process *p1 = NULL; //process running in CPU
-  int priority_boost_flag = 0;
   while (are_processes_done() == 0)
   {
 
-    enqueue_to_topmost_queue(current_time);
+    for (i = 0; i < number_of_processes; i++)
+    {
+      if (p[i].arrival_time == current_time)
+      {
+        p[i].queue_index = 0;
+        p[i].time_quantum_left = q[0].time_quantum;
+        enqueue(&q[0], &p[i]);
+      }
+    }
 
     if (p1 && has_ready_higher_priority_job(p1))
     {
@@ -489,7 +467,6 @@ int main(void)
       p1->time_quantum_left--;
       p1->io_burst_timer++;
 
-      //Remove from CPU and place to IO
       if (p1->io_burst_timer == p1->io_frequency && p1->io_burst_time != 0 && p1->execution_time_left != 0)
       {
         record_end_time(p1, current_time);
@@ -498,14 +475,14 @@ int main(void)
         record_IO_start_time(p1, current_time);
         p1 = NULL;
       }
-      //Job uses up its time quantum (Rule 4)
+
       else if (p1->time_quantum_left == 0 && p1->execution_time_left != 0)
       {
         record_end_time(p1, current_time);
         enqueue_to_lower(p1);
         p1 = NULL;
       }
-      //Job finished execution
+
       else if (p1->execution_time_left == 0)
       {
         record_end_time(p1, current_time);
@@ -513,10 +490,6 @@ int main(void)
       }
     }
   }
-
-  //compute_waiting_turnaround();
-
-  avg_waiting_time = 0;
 
   for (i = 0; i < number_of_processes; i++)
   {
@@ -533,25 +506,30 @@ int main(void)
     avg_waiting_time += p[i].waiting_time;
   }
   avg_waiting_time = avg_waiting_time / number_of_processes;
-  //show_output();
 
-  printf("**************************************** \n");
+  printf("\n************************************************************* \n");
   for (i = 0; i < number_of_processes; i++)
   {
-    printf("P[%d]\n", p[i].id);
+    printf("P[%d]\n\n", p[i].id);
     for (j = 0; j < p[i].start_end_array_size; j++)
     {
       if (strcmp(p[i].queue_id[j], "IO") == 0)
+      {
         printf("[IO] ");
+      }
       else
+      {
         printf("Q[%s] ", p[i].queue_id[j]);
+      }
+
       printf("Start time: %d \t End time: %d \n", p[i].start_time[j], p[i].end_time[j]);
     }
-    printf("Waiting time: %d \n", p[i].waiting_time);
-    printf("Turnaround time: %d \n", p[i].turnaround_time);
-    printf("**************************************** \n");
+
+    printf("\nWait time: %d \n", p[i].waiting_time);
+    printf("TA time: %d \n", p[i].turnaround_time);
+    printf("\n************************************************************* \n");
   }
-  printf("Average waiting time: %0.2f \n", avg_waiting_time);
+  printf("Average wait time: %f \n", avg_waiting_time);
 
   return 0;
 }
