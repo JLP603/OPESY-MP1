@@ -25,18 +25,6 @@ float avg_waiting_time;
 
 #include "datafunc.h"
 
-int isStringDigitsOnly(const char *str)
-{
-  while (*str)
-  {
-    if (*str != '\n' && *str != ' ' && isdigit(*str++) == 0)
-      return 0;
-
-    *str++;
-  }
-  return 1;
-}
-
 void enqueue_to_lower(process *p1)
 {
   if (p1->queue_index == number_of_queues - 1)
@@ -49,21 +37,6 @@ void enqueue_to_lower(process *p1)
     enqueue(&q[p1->queue_index], p1);
   }
   p1->time_quantum_left = q[p1->queue_index].time_quantum;
-}
-
-void execute_priority_boost()
-{
-  int i;
-  for (i = 1; i < number_of_queues; i++)
-  {
-    while (!is_queue_empty(&q[i]))
-    {
-      process *p1 = dequeue(&q[i]);
-      p1->queue_index = 0;
-      p1->time_quantum_left = q[0].time_quantum;
-      enqueue(&q[0], p1);
-    }
-  }
 }
 
 int are_processes_done()
@@ -170,14 +143,6 @@ int has_ready_higher_priority_job(process *p1)
     }
 
   return flag;
-}
-
-void show_processes()
-{
-  int i;
-  for (i = 0; i < number_of_processes; i++)
-    printf("P[%d] %d %d %d %d \n", p[i].id, p[i].arrival_time, p[i].total_execution_time,
-           p[i].io_burst_time, p[i].io_frequency);
 }
 
 int are_all_queues_empty()
@@ -449,7 +414,16 @@ int main(void)
       priority_boost_flag = 1;
     if (priority_boost_flag && p1 == NULL)
     {
-      execute_priority_boost();
+      for (i = 1; i < number_of_queues; i++)
+      {
+        while (!is_queue_empty(&q[i]))
+        {
+          process *p1 = dequeue(&q[i]);
+          p1->queue_index = 0;
+          p1->time_quantum_left = q[0].time_quantum;
+          enqueue(&q[0], p1);
+        }
+      }
       priority_boost_flag = 0;
     }
 
