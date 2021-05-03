@@ -176,12 +176,13 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
             for(i=0;i<process_num;i++){
                   printf("Process id: %d arrival time: %d burst time: %d IO burst time: %d IO interval %d\n",process_id[i],arrival_time[i],burst_time[i],IO_burst_time[i],burst_interval[i]);
             }
+            /*
             //stopper for testing
             if(time==20){
                  printf("PROCESS FORCE STOP\n");             
                   break;
             }
-
+            */
             //check for all the tasks to see what arrived and is also not complete
             for(i=0;i<process_num;i++){
                   if(arrival_time[i]<=time&&burst_time[i]>0&&ProcessCheck[i]==0){
@@ -356,6 +357,7 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                                     ordered_q_content_len[i]=0;
                               }
                               delay_boost=0;
+                              curr_q=0;
                         }
 
                         //reset curr process
@@ -418,10 +420,8 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                               //schedule new tasks with prioboost like normal
                               printf("BOOOSTTT!!!!\n");
                               for(i=1;i<queue_num;i++){
-                                    printf("BOOOSTTT!!!!\n");
                                     for(j=0;j<ordered_q_content_len[i];j++)
                                     {
-                                          printf("%d\n",ordered_q_contents[i][j]);
                                           ordered_q_contents[0][ordered_q_content_len[0]]=ordered_q_contents[i][j];
                                           ordered_q_content_len[0]++;
                                           prcs_quant_q[ordered_q_contents[i][j]][0]=0;
@@ -430,11 +430,11 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                                           prcs_quant_q[ordered_q_contents[i][j]][3]=0;
                                           //remove lower queue contents
                                           ordered_q_contents[i][j]=0;
-                                          
                                     }
                                     ordered_q_content_len[i]=0;
                               }
                               delay_boost=0;
+                              curr_q=0;
                         }
                         
 
