@@ -66,13 +66,14 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       int process_start[100][100],process_end[100][100],prcs_q[100][100],prcs_startend_len[100],prcsfound=1,demote_pos;
       int tmp,time,count=0,curr_q=0,curr_process,curr_quant,prevProcess,ProcessCheck[100],IO_prcs[100][2],IO_prcs_len=0;
       int process_id[100], arrival_time[100], burst_time[100],IO_burst_time[100],burst_interval[100],tmp_IO[100][2],tmp_IO_count=0;
-      int prcs_wt_time[100],delay_boost=0,i,j;
-      float avg_wt;
+      int prcs_wt_time[100],delay_boost=0,i,j,io_add=0,prcs_quant_q[100][4];
+      float avg_wt=0.0;
       for(i = 0; i < queue_num; i++){
         fscanf(fptr, "%d %d %d\n", &queue_id[i], &queue_prio[i], &quantum[i]);
         prcs_wt_time[i]=0;
         ProcessCheck[i] = 0;
         prcs_startend_len[i]=0;
+        ordered_q_content_len[i]=0;
       }
       //sort queue by prio
       for (i = 0; i < queue_num; i++){
@@ -103,7 +104,12 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       }
       for(i=0;i<process_num;i++){
             prcs_wt_time[i]=0;
+            for(j=0;j<3;j++){
+                  prcs_quant_q[i][j]=0;
+            }
       }
+      fclose(fptr);
+
       //schedule tasks by round robin in the queues and the queue's qunantum which is FCFS so...
       //sort by arrival time
       for (i = 0; i < process_num; i++){
@@ -152,30 +158,66 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                 }
             }
       }
+      /*
+      //test printing
+      for(i=0;i<queue_num;i++){
+            printf("Queue id: %d prio: %d quantum %d\n",queue_id[i],queue_prio[i],quantum[i]);
+      }
+      for(i=0;i<process_num;i++){
+            printf("Process id: %d arrival time: %d burst time: %d IO burst time: %d IO interval %d\n",process_id[i],arrival_time[i],burst_time[i],IO_burst_time[i],burst_interval[i]);
+      }
+      */
+
       prevProcess=101;
       //runs until the process counter is equal to # of processes
       for(time=0;count!=process_num;time++){
+            //testing
+            printf("\nTIME RUNS! It is now: %d ms\n",time);
+            for(i=0;i<process_num;i++){
+                  printf("Process id: %d arrival time: %d burst time: %d IO burst time: %d IO interval %d\n",process_id[i],arrival_time[i],burst_time[i],IO_burst_time[i],burst_interval[i]);
+            }
+            //stopper for testing
+            if(time==13){
+                 printf("PROCESS FORCE STOP\n");             
+                  break;
+            }
+
             //check for all the tasks to see what arrived and is also not complete
             for(i=0;i<process_num;i++){
-                  if(arrival_time[i]<=time &&burst_time[i]>0){
+                  if(arrival_time[i]<=time&&burst_time[i]>0&&ProcessCheck[i]==0){
                         //add task to q
-                        ordered_q_contents[curr_q][ordered_q_content_len[curr_q]]=i;
-                        ordered_q_content_len[curr_q]++;
-                  }
-            }
-            //check for any tasks / processes coming out of IO freeze
-            for(i=0;i<IO_prcs_len;i++){
-                  //move IO process to a Queue
-                  if(IO_prcs[i][1]==0){
                         ordered_q_contents[0][ordered_q_content_len[0]]=i;
                         ordered_q_content_len[0]++;
+                        ProcessCheck[i]=1;
+                        //ABA
+                        prcs_quant_q[i][3]=0;
+                  }
+            }
+
+            //check for any tasks / processes coming out of IO freeze
+            for(i=0;i<IO_prcs_len;i++){
+                  printf("check io freeze\n");
+                  
+                  for(j=0;j<IO_prcs_len;j++){
+                        printf("j= %d IO arr with process %d time remaining: %d\n",j,IO_prcs[j][0],IO_prcs[j][1]);
+                  }
+                  
+                  //move IO process to a Queue
+                  if(IO_prcs[i][1]==0){
+                        ordered_q_contents[prcs_quant_q[IO_prcs[i][0]][3]][ordered_q_content_len[prcs_quant_q[IO_prcs[i][0]][3]]]=IO_prcs[i][0];
+                        ordered_q_content_len[prcs_quant_q[IO_prcs[i][0]][3]]++;
+                        ProcessCheck[IO_prcs[i][0]]=1;
+                        //should probabbly be replaced by a quantum assigned to every process
+                        //ABA
+                        curr_quant=0;
+                        io_add=1;
                   }
                   //move processes to start of IO array
                   if(IO_prcs[i][1]!=0){
                         tmp_IO[tmp_IO_count][0]=IO_prcs[i][0];
                         tmp_IO[tmp_IO_count][1]=IO_prcs[i][1];
                         tmp_IO_count++;
-                  }      
+                  }  
             }
             //revalue IOprcs with tmp_IO and empty tmpIO out
             for (i = 0; i < IO_prcs_len; i++){
@@ -186,44 +228,75 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
             }
             IO_prcs_len=tmp_IO_count;
             tmp_IO_count=0;
+            
+            if(io_add==1){
+                  //move the prev process to the end of the queue it inhabits this should actually just be for when a new IO process comes
+                  tmp=ordered_q_contents[curr_q][0];
+                  for(i=0;i<ordered_q_content_len[curr_q];i++){
+                        
+                        if(i==(ordered_q_content_len[curr_q]-1)){
+                              ordered_q_contents[curr_q][i]=tmp;
+                        }
+                        else{
+                              ordered_q_contents[curr_q][i]=ordered_q_contents[curr_q][i+1];
+                        }
+                  }
+                  tmp=0;
+                    
+                  io_add=0;
+            }
+
             //might need to change or remove this segment below
             //start checking for tasks at highest priority queue 
             curr_q=0;
             //check if the curr_q is empty, if it is go down all the qs until you reach the end
             if(ordered_q_content_len[curr_q]==0)
-            {
-                  while(ordered_q_content_len[curr_q]==0){
+            {     
+                  while(ordered_q_content_len[curr_q]==0&&prcsfound==1){
                         curr_q++;
-                        curr_quant=0;
-                        if(curr_q==queue_num&&ordered_q_content_len[curr_q]==0)
+                        //ABA
+                        //curr_quant=0;
+                        if(curr_q==queue_num)
                         {
-                              //not processes are available to do skip time and start at the highest queue again for jobs
-                              //each process has its own quantum counter for each queue?
+                              //shouldnt each process have its own quantum counter for each queue?
+                              curr_q=0;
                               prcsfound=0;
-                              break;
                         }
                   }
             }
+
+            //testing, check contents of the queues
+            for(i=0;i<queue_num;i++){
+                  printf("Queue: %d process position put into queue:",i);
+                  for(j=0;j<ordered_q_content_len[i];j++){
+                        printf(" %d",ordered_q_contents[i][j]);
+                  }
+                  printf("\n");
+            }
+
             //If the process is in IO during prio boost do not include it in prioboost
             //schedule new tasks with prioboost like normal
             /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
             until the task is finished then schedule the tasks using prio boost*/
-            if(time%prio_boost_time==0){
+            if(time%prio_boost_time==0&&time>=prio_boost_time){
                   delay_boost=1;
             }
             //if you found any arrived processes for any of the queues 
             if(prcsfound==1){
+                  
                   //set the curr process to work on the task at the start of curr_q
                   curr_process=ordered_q_contents[curr_q][0];
                   
                   //check if it is the first process ever
                   if(curr_process!=prevProcess&&prevProcess==101){
-                        curr_quant=0;
+                        //ABA
+                        //curr_quant=0;
                         //update proccess start time for new process
                         process_start[curr_process][prcs_startend_len[curr_process]]=time;
                   }
                   //check if it was the same process as last time to reset the queue's quantum
                   if(curr_process!=prevProcess&&prevProcess!=101&&ProcessCheck[prevProcess]==1){
+                        //ABA
                         curr_quant=0;
                         //update proccess start time for new process
                         process_start[curr_process][prcs_startend_len[curr_process]]=time;
@@ -231,12 +304,15 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                         process_end[prevProcess][prcs_startend_len[prevProcess]]=time;
                         //assign what q the task finished in
                         prcs_q[prevProcess][prcs_startend_len[prevProcess]]=curr_q;
-                        //the process is no longer waiting
-                        ProcessCheck[prevProcess]=0;
+                        //the process is now waiting
+                        ProcessCheck[prevProcess]=2;
+                        
                   }
                   //check if the process has exceeded the queue's quantum
-                  if(curr_quant>quantum[curr_q])
-                  {
+                  if(prcs_quant_q[curr_process][prcs_quant_q[curr_process][3]]+1>quantum[curr_q])
+                  {     
+                        //for testing
+                        printf("\nQUANTUM EXCEEDED\n");
                         //update curr process end time
                         process_end[curr_process][prcs_startend_len[curr_process]]=time;
                         //move the process to a lower queue
@@ -245,66 +321,129 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                         if(demote_pos==queue_num){
                               demote_pos=curr_q;
                         }
+                        //ABA
+                        prcs_quant_q[curr_process][3]=demote_pos;
                         ordered_q_contents[demote_pos][ordered_q_content_len[demote_pos]]=curr_process;
                         ordered_q_content_len[demote_pos]++;
+                        //remove process from queue
+                        for(i=0;i<ordered_q_content_len[curr_q];i++){
+                              if(i==ordered_q_content_len[curr_q]-1){
+                                    ordered_q_contents[curr_q][i]=101;
+                              }
+                              else{
+                                    ordered_q_contents[curr_q][i]=ordered_q_contents[curr_q][i+1];
+                              }
+                        }
+                        ordered_q_content_len[curr_q]--;
                         //process is waiting
-                        ProcessCheck[curr_process]=1;
-                        //prioboost
-                        //If the process is in IO during prio boost do not include it in prioboost
-                        /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
-                        until the task is finished then schedule the tasks using prio boost*/
-                        if(time%prio_boost_time==0||delay_boost==1){
-                              //schedule new tasks with prioboost like normal
-                              for(i=1;i<queue_num;i++){
-                                    for(j=0;j<ordered_q_content_len[i];j++)
+                        ProcessCheck[curr_process]=2;
+                        //reset curr process
+                        curr_process=ordered_q_contents[curr_q][0];
+                        //ABA
+                        //reset curr quant
+                        curr_quant=0;
+                        //prcs_quant_q[curr_process][prcs_quant_q[curr_process][3]]=0;
+                        if(ordered_q_content_len[curr_q]==0)
+                        {
+                              while(ordered_q_content_len[curr_q]==0&&prcsfound==1){
+                                    curr_q++;
+                                    //ABA
+                                    //curr_quant=0;
+                                    if(curr_q==queue_num)
                                     {
-                                          ordered_q_contents[0][ordered_q_content_len[0]]=ordered_q_contents[i][j];
-                                          ordered_q_content_len[0]++;
+                                          //ABA
+                                          //shouldnt each process have its own quantum counter for each queue?
+                                          //curr_q=0;
+                                          prcsfound=0;
+                                          
                                     }
-                                    ordered_q_content_len[i]=0;
                               }
-                              delay_boost=0;
-                        }
-                  }
-                  //if the quantum isnt over
-                  else{
-                        //if it is IO burst interval time
-                        if(curr_quant%burst_interval[curr_process]==0){
-                              IO_prcs[IO_prcs_len][0]=curr_process;
-                              IO_prcs[IO_prcs_len][1]=IO_burst_time[curr_process];
-                              IO_prcs_len++;
-                              //remove from ordered q content
-                        }
-                        else{
-                              burst_time[curr_process]--;
-                              prevProcess=curr_process;
-                              curr_quant++;
-                              //if a process finishes
-                              if(burst_time[curr_process]==0){
-                                    count++;
-                                    printf("P[%d]\n",process_id[curr_process]);
-                                    for(i=0;i<prcs_startend_len[curr_process];i++){
-                                          //if the process Q is not the available q, then the process had an I/O
-                                          if(prcs_q[curr_process][i]==10){
-                                                printf("[IO] Start time: %d End time: %d\n",process_start[curr_process][i],process_end[curr_process][i]);
-                                          }
-                                          else{
-                                                printf("Q[%d] Start time: %d End time: %d\n",prcs_q[curr_process][i],process_start[curr_process][i],process_end[curr_process][i]);
-                                          }
-                                    }
-                                    printf("Waiting time: %d\n",prcs_wt_time[curr_process]);
-                                    printf("Turnaround time: %d\n",time-arrival_time[curr_process]);
-                                    printf("************************************\n");
-
-                              }
-                              
+                              curr_process=ordered_q_contents[curr_q][0];
                         }
                         
+                  }
+                  //testing
+                  printf("curr process = Q%d %d with quantum=%d and currquant of %d burstinterval of current process %d \n",curr_q,curr_process,prcs_quant_q[curr_process][curr_q],curr_quant,burst_interval[curr_process]);
+                  //if it is IO burst interval time
+                  if(burst_interval[curr_process]>0&&(
+                  //ABA
+                  //prcs_quant_q[curr_process][curr_q]
+                  curr_quant
+                  %burst_interval[curr_process])==0&&
+                  //ABA
+                  curr_quant
+                  //prcs_quant_q[curr_process][curr_q]
+                  >=burst_interval[curr_process]){
+                        //for testing
+                        printf("STOP FREEZE IN IO\n");
+                        IO_prcs[IO_prcs_len][0]=curr_process;
+                        IO_prcs[IO_prcs_len][1]=IO_burst_time[curr_process];
+                        IO_prcs_len++;
+                        //remove process from queue
+                        for(i=0;i<ordered_q_content_len[curr_q];i++){
+                              if(i==ordered_q_content_len[curr_q]-1){
+                                    ordered_q_contents[curr_q][i]=101;
+                              }
+                              else{
+                                    ordered_q_contents[curr_q][i]=ordered_q_contents[curr_q][i+1];
+                              }
+                        }
+                        ordered_q_content_len[curr_q]--;
+                        //process is waiting
+                        ProcessCheck[curr_process]=2;
+                        //reset curr process
+                        curr_process=ordered_q_contents[curr_q][0];
+                        //ABA
+                        //reset curr quant
+                        curr_quant=0;
+                        if(ordered_q_content_len[curr_q]==0)
+                        {
+                              printf("No task in curr_q %d\n",curr_q);
+                              while(ordered_q_content_len[curr_q]==0&&prcsfound==1){
+                                    curr_q++;
+                                    //ABA
+                                    //curr_quant=0;
+                                    if(curr_q==queue_num)
+                                    {
+                                          //shouldnt each process have its own quantum counter for each queue?
+                                          curr_q=0;
+                                          prcsfound=0;
+                                    }
+                              }
                               
+                        }
+                        printf("new curr_q %d\n",curr_q);
+                        curr_process=ordered_q_contents[curr_q][0];
+                        
+                  }
+                  if(prcsfound==1){
+                        burst_time[curr_process]--;
+                        prevProcess=curr_process;
+                        //ABA
+                        prcs_quant_q[curr_process][curr_q]++;
+                        curr_quant++;
+                        ProcessCheck[curr_process]=3;
+                        //if a process finishes
+                        if(burst_time[curr_process]==0){
+                              count++;
+                              printf("P[%d]\n",process_id[curr_process]);
+                              for(i=0;i<prcs_startend_len[curr_process];i++){
+                                    //if the process Q is not the available q, then the process had an I/O
+                                    if(prcs_q[curr_process][i]==10){
+                                          printf("[IO] Start time: %d End time: %d\n",process_start[curr_process][i],process_end[curr_process][i]);
+                                    }
+                                    else{
+                                          printf("Q[%d] Start time: %d End time: %d\n",prcs_q[curr_process][i],process_start[curr_process][i],process_end[curr_process][i]);
+                                    }
+                              }
+                              printf("Waiting time: %d\n",prcs_wt_time[curr_process]);
+                              printf("Turnaround time: %d\n",time-arrival_time[curr_process]);
+                              printf("************************************\n");
+                        }
                   }
                   //update wait time (wait time is how long it waits in a q)
                   for(i=0;i<process_num;i++){
-                        if(arrival_time[i]<=time&&burst_time[i]>0&&ProcessCheck[i]==1){
+                        if(arrival_time[i]<=time&&burst_time[i]>0&&ProcessCheck[i]==2){
                               prcs_wt_time[i]++;
                         }
                   }
@@ -315,13 +454,17 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                   //If the process is in IO during prio boost do not include it in prioboost
                   /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
                   until the task is finished then schedule the tasks using prio boost*/
-                  if(time%prio_boost_time==0||delay_boost==1){
+                  if((time%prio_boost_time==0&&time>=prio_boost_time)||delay_boost==1){
                         //schedule new tasks with prioboost like normal
                         for(i=1;i<queue_num;i++){
                               for(j=0;j<ordered_q_content_len[i];j++)
                               {
                                     ordered_q_contents[0][ordered_q_content_len[0]]=ordered_q_contents[i][j];
                                     ordered_q_content_len[0]++;
+                                    //remove lower queue contents
+                                    ordered_q_contents[i][j]=0;
+                                    //not sure if i need this line below
+                                    ProcessCheck[ordered_q_contents[i][j]]=2;
                               }
                               ordered_q_content_len[i]=0;
                         }
@@ -358,7 +501,7 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
       //arriving process has priority over processes coming back from IO burst
       //wait time is the amount of time waiting for the process for the CPU (I/O does not factor into this)
       //turn around time is the amount of time it takes to complete the process (CPU process time + waiting time)
-      fclose(fptr);
+      
 
 }
 int main() 
