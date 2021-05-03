@@ -177,7 +177,7 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                   printf("Process id: %d arrival time: %d burst time: %d IO burst time: %d IO interval %d\n",process_id[i],arrival_time[i],burst_time[i],IO_burst_time[i],burst_interval[i]);
             }
             //stopper for testing
-            if(time==13){
+            if(time==20){
                  printf("PROCESS FORCE STOP\n");             
                   break;
             }
@@ -274,16 +274,16 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                   printf("\n");
             }
 
-            //If the process is in IO during prio boost do not include it in prioboost
-            //schedule new tasks with prioboost like normal
-            /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
-            until the task is finished then schedule the tasks using prio boost*/
-            if(time%prio_boost_time==0&&time>=prio_boost_time){
-                  delay_boost=1;
-            }
+            
             //if you found any arrived processes for any of the queues 
             if(prcsfound==1){
-                  
+                  //If the process is in IO during prio boost do not include it in prioboost
+                  //schedule new tasks with prioboost like normal
+                  /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
+                  until the task is finished then schedule the tasks using prio boost*/
+                  if(time%prio_boost_time==0&&time>=prio_boost_time){
+                        delay_boost=1;
+                  }
                   //set the curr process to work on the task at the start of curr_q
                   curr_process=ordered_q_contents[curr_q][0];
                   
@@ -336,7 +336,28 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                         }
                         ordered_q_content_len[curr_q]--;
                         //process is waiting
+                        //ABA
                         ProcessCheck[curr_process]=2;
+                        if(delay_boost==1){
+                              //schedule new tasks with prioboost like normal
+                              printf("BOOOSTTT!!!!\n");
+                              for(i=1;i<queue_num;i++){
+                                    for(j=0;j<ordered_q_content_len[i];j++)
+                                    {
+                                          ordered_q_contents[0][ordered_q_content_len[0]]=ordered_q_contents[i][j];
+                                          ordered_q_content_len[0]++;
+                                          prcs_quant_q[ordered_q_contents[i][j]][0]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][1]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][2]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][3]=0;
+                                          //remove lower queue contents
+                                          ordered_q_contents[i][j]=0;
+                                    }
+                                    ordered_q_content_len[i]=0;
+                              }
+                              delay_boost=0;
+                        }
+
                         //reset curr process
                         curr_process=ordered_q_contents[curr_q][0];
                         //ABA
@@ -392,6 +413,31 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                         //process is waiting
                         ProcessCheck[curr_process]=2;
                         //reset curr process
+                        //ABA
+                        if(delay_boost==1){
+                              //schedule new tasks with prioboost like normal
+                              printf("BOOOSTTT!!!!\n");
+                              for(i=1;i<queue_num;i++){
+                                    printf("BOOOSTTT!!!!\n");
+                                    for(j=0;j<ordered_q_content_len[i];j++)
+                                    {
+                                          printf("%d\n",ordered_q_contents[i][j]);
+                                          ordered_q_contents[0][ordered_q_content_len[0]]=ordered_q_contents[i][j];
+                                          ordered_q_content_len[0]++;
+                                          prcs_quant_q[ordered_q_contents[i][j]][0]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][1]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][2]=0;
+                                          prcs_quant_q[ordered_q_contents[i][j]][3]=0;
+                                          //remove lower queue contents
+                                          ordered_q_contents[i][j]=0;
+                                          
+                                    }
+                                    ordered_q_content_len[i]=0;
+                              }
+                              delay_boost=0;
+                        }
+                        
+
                         curr_process=ordered_q_contents[curr_q][0];
                         //ABA
                         //reset curr quant
@@ -454,8 +500,9 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                   //If the process is in IO during prio boost do not include it in prioboost
                   /*prio boost time if a process in ANY q is still running during prio boost, delay the scheduling 
                   until the task is finished then schedule the tasks using prio boost*/
-                  if((time%prio_boost_time==0&&time>=prio_boost_time)||delay_boost==1){
+                  if(time%prio_boost_time==0&&time>=prio_boost_time){
                         //schedule new tasks with prioboost like normal
+                        printf("BOOOSTTT!!!!\n");
                         for(i=1;i<queue_num;i++){
                               for(j=0;j<ordered_q_content_len[i];j++)
                               {
@@ -464,11 +511,15 @@ void multilvl(FILE *fptr, int queue_num, int process_num, int prio_boost_time)
                                     //remove lower queue contents
                                     ordered_q_contents[i][j]=0;
                                     //not sure if i need this line below
-                                    ProcessCheck[ordered_q_contents[i][j]]=2;
+                                    ProcessCheck[ordered_q_contents[i][j]]=1;
+                                    prcs_quant_q[ordered_q_contents[i][j]][0]=0;
+                                    prcs_quant_q[ordered_q_contents[i][j]][1]=0;
+                                    prcs_quant_q[ordered_q_contents[i][j]][2]=0;
+                                    prcs_quant_q[ordered_q_contents[i][j]][3]=0;
+                                    
                               }
                               ordered_q_content_len[i]=0;
                         }
-                        delay_boost=0;
                   }
             }
             //update IO burst time
